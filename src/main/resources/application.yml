@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: wordpress-sass
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:word_pass}?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:123456}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+wordpress:
+  multisite:
+    enabled: ${WP_MULTISITE_ENABLED:false}
+    base-url: ${WP_MULTISITE_BASE_URL:}
+    provision-endpoint: ${WP_MULTISITE_PROVISION_ENDPOINT:/wp-json/wpss/v1/sites}
+    admin-username: ${WP_MULTISITE_ADMIN_USERNAME:}
+    admin-app-password: ${WP_MULTISITE_ADMIN_APP_PASSWORD:}
+    network-domain: ${WP_MULTISITE_NETWORK_DOMAIN:wp.local}
+    use-https: ${WP_MULTISITE_USE_HTTPS:true}
+
+server:
+  port: 8080
+
+app:
+  auth:
+    secret: ${APP_AUTH_SECRET:change-this-secret}
+    issuer: ${APP_AUTH_ISSUER:wordpress-sass}
+    expire-seconds: ${APP_AUTH_EXPIRE_SECONDS:86400}
+  bootstrap:
+    tenant-name: ${APP_BOOTSTRAP_TENANT_NAME:Default Tenant}
+    admin-username: ${APP_BOOTSTRAP_ADMIN_USERNAME:admin}
+    admin-password: ${APP_BOOTSTRAP_ADMIN_PASSWORD:admin123}
+    admin-email: ${APP_BOOTSTRAP_ADMIN_EMAIL:admin@example.com}

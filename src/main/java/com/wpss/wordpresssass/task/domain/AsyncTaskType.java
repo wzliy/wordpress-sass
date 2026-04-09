@@ -1,0 +1,17 @@
+package com.wpss.wordpresssass.task.domain;
+
+public enum AsyncTaskType {
+    SITE_PROVISION,
+    SITE_TEMPLATE_INIT,
+    DOMAIN_VERIFY,
+    SSL_APPLY,
+    SSL_RENEW,
+    CLOAK_DEPLOY,
+    PAYMENT_CALLBACK_RETRY,
+    PAYMENT_STATUS_SYNC,
+    ERP_PUSH_ORDER,
+    ERP_PULL_ORDER,
+    ERP_PUSH_PRODUCT,
+    ERP_PULL_INVENTORY,
+    LEGACY_POST_PUBLISH
+}

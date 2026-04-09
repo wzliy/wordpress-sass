@@ -1,0 +1,6 @@
+ALTER TABLE user
+    ADD COLUMN IF NOT EXISTS status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' AFTER role;
+
+UPDATE user
+SET status = 'ACTIVE'
+WHERE status IS NULL OR status = '';
