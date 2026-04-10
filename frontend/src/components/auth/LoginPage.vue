@@ -23,12 +23,32 @@ defineEmits(['submit'])
 
 <template>
   <div class="login-layout">
+    <section class="login-stage">
+      <div class="login-stage-copy">
+        <span class="login-kicker">Control Access</span>
+        <h1>进入暗色运营控制台。</h1>
+        <p>围绕站点、发布、用户和建站流程组织的统一后台入口，先登录，再进入深色工作流。</p>
+      </div>
+      <div class="login-stage-metrics">
+        <article class="login-stage-card">
+          <span>Storefront</span>
+          <strong>Host-driven</strong>
+          <p>站点、域名和首页配置已经在同一条主线上收口。</p>
+        </article>
+        <article class="login-stage-card">
+          <span>Design System</span>
+          <strong>Dark-first</strong>
+          <p>全局 token、壳组件和页面皮肤会统一遵循 `docs/design.md`。</p>
+        </article>
+      </div>
+    </section>
+
     <div class="login-card">
       <div class="login-brand">
         <div class="login-logo">WS</div>
         <div>
           <h1>管理后台</h1>
-          <p>管理员登录</p>
+          <p>Administrator Sign-in</p>
         </div>
       </div>
 

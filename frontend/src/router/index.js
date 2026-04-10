@@ -8,6 +8,7 @@ import PublishHistoryPage from '../pages/publish/PublishHistoryPage.vue'
 import SiteListPage from '../pages/site/SiteListPage.vue'
 import SiteProvisionPage from '../pages/site/SiteProvisionPage.vue'
 import SiteRegisterPage from '../pages/site/SiteRegisterPage.vue'
+import SiteWorkspacePage from '../pages/site/SiteWorkspacePage.vue'
 import UserCreatePage from '../pages/user/UserCreatePage.vue'
 import UserEditPage from '../pages/user/UserEditPage.vue'
 import UserListPage from '../pages/user/UserListPage.vue'
@@ -64,6 +65,16 @@ const router = createRouter({
       meta: {
         layout: 'admin',
         module: 'site',
+      },
+    },
+    {
+      path: '/sites/:id/workspace',
+      name: 'site-workspace',
+      component: SiteWorkspacePage,
+      meta: {
+        layout: 'admin',
+        module: 'site',
+        activePath: '/sites/list',
       },
     },
     {

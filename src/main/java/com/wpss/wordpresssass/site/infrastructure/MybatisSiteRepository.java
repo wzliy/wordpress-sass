@@ -58,6 +58,7 @@ public class MybatisSiteRepository implements SiteRepository {
         SiteDO siteDO = new SiteDO();
         siteDO.setId(site.getId());
         siteDO.setTenantId(site.getTenantId());
+        siteDO.setSiteCode(site.getSiteCode());
         siteDO.setName(site.getName());
         siteDO.setSiteType(site.getSiteType().name());
         siteDO.setBaseUrl(site.getBaseUrl());
@@ -69,6 +70,14 @@ public class MybatisSiteRepository implements SiteRepository {
         siteDO.setStatus(site.getStatus().getCode());
         siteDO.setProvisionStatus(site.getProvisionStatus().name());
         siteDO.setStatusMsg(truncateStatusMessage(site.getStatusMessage()));
+        siteDO.setTemplateId(site.getTemplateId());
+        siteDO.setCountryCode(site.getCountryCode());
+        siteDO.setLanguageCode(site.getLanguageCode());
+        siteDO.setCurrencyCode(site.getCurrencyCode());
+        siteDO.setThemeColor(site.getThemeColor());
+        siteDO.setLogoUrl(site.getLogoUrl());
+        siteDO.setBannerTitle(site.getBannerTitle());
+        siteDO.setBannerSubtitle(site.getBannerSubtitle());
         siteDO.setCreatedAt(site.getCreatedAt());
         return siteDO;
     }
@@ -84,6 +93,7 @@ public class MybatisSiteRepository implements SiteRepository {
         return new Site(
                 siteDO.getId(),
                 siteDO.getTenantId(),
+                siteDO.getSiteCode(),
                 siteDO.getName(),
                 SiteType.valueOf(siteDO.getSiteType()),
                 siteDO.getBaseUrl(),
@@ -95,6 +105,14 @@ public class MybatisSiteRepository implements SiteRepository {
                 SiteStatus.fromCode(siteDO.getStatus()),
                 ProvisionStatus.valueOf(siteDO.getProvisionStatus()),
                 siteDO.getStatusMsg(),
+                siteDO.getTemplateId(),
+                siteDO.getCountryCode(),
+                siteDO.getLanguageCode(),
+                siteDO.getCurrencyCode(),
+                siteDO.getThemeColor(),
+                siteDO.getLogoUrl(),
+                siteDO.getBannerTitle(),
+                siteDO.getBannerSubtitle(),
                 siteDO.getCreatedAt()
         );
     }

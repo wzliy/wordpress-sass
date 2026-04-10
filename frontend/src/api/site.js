@@ -4,6 +4,14 @@ export function listSites() {
   return request('/api/site/list', authOnlyOptions())
 }
 
+export function listSiteTemplates() {
+  return request('/api/site/template/list', authOnlyOptions())
+}
+
+export function getSiteWorkspace(id) {
+  return request(`/api/site/workspace?id=${id}`, authOnlyOptions())
+}
+
 export function registerSite(body) {
   return request('/api/site/register', jsonOptions('POST', body))
 }

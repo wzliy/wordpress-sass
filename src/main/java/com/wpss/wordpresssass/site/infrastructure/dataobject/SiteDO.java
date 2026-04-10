@@ -6,6 +6,7 @@ public class SiteDO {
 
     private Long id;
     private Long tenantId;
+    private String siteCode;
     private String name;
     private String siteType;
     private String baseUrl;
@@ -17,6 +18,14 @@ public class SiteDO {
     private Integer status;
     private String provisionStatus;
     private String statusMsg;
+    private Long templateId;
+    private String countryCode;
+    private String languageCode;
+    private String currencyCode;
+    private String themeColor;
+    private String logoUrl;
+    private String bannerTitle;
+    private String bannerSubtitle;
     private LocalDateTime createdAt;
 
     public Long getId() {
@@ -33,6 +42,14 @@ public class SiteDO {
 
     public void setTenantId(Long tenantId) {
         this.tenantId = tenantId;
+    }
+
+    public String getSiteCode() {
+        return siteCode;
+    }
+
+    public void setSiteCode(String siteCode) {
+        this.siteCode = siteCode;
     }
 
     public String getName() {
@@ -121,6 +138,70 @@ public class SiteDO {
 
     public void setStatusMsg(String statusMsg) {
         this.statusMsg = statusMsg;
+    }
+
+    public Long getTemplateId() {
+        return templateId;
+    }
+
+    public void setTemplateId(Long templateId) {
+        this.templateId = templateId;
+    }
+
+    public String getCountryCode() {
+        return countryCode;
+    }
+
+    public void setCountryCode(String countryCode) {
+        this.countryCode = countryCode;
+    }
+
+    public String getLanguageCode() {
+        return languageCode;
+    }
+
+    public void setLanguageCode(String languageCode) {
+        this.languageCode = languageCode;
+    }
+
+    public String getCurrencyCode() {
+        return currencyCode;
+    }
+
+    public void setCurrencyCode(String currencyCode) {
+        this.currencyCode = currencyCode;
+    }
+
+    public String getThemeColor() {
+        return themeColor;
+    }
+
+    public void setThemeColor(String themeColor) {
+        this.themeColor = themeColor;
+    }
+
+    public String getLogoUrl() {
+        return logoUrl;
+    }
+
+    public void setLogoUrl(String logoUrl) {
+        this.logoUrl = logoUrl;
+    }
+
+    public String getBannerTitle() {
+        return bannerTitle;
+    }
+
+    public void setBannerTitle(String bannerTitle) {
+        this.bannerTitle = bannerTitle;
+    }
+
+    public String getBannerSubtitle() {
+        return bannerSubtitle;
+    }
+
+    public void setBannerSubtitle(String bannerSubtitle) {
+        this.bannerSubtitle = bannerSubtitle;
     }
 
     public LocalDateTime getCreatedAt() {

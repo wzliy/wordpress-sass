@@ -1,4 +1,5 @@
 <script setup>
+import { ref, watch } from 'vue'
 import { useRoute, useRouter, RouterView } from 'vue-router'
 import LoadingScreen from './components/common/LoadingScreen.vue'
 import HeaderBar from './components/layout/HeaderBar.vue'
@@ -18,9 +19,11 @@ const {
   login,
   logout,
   moduleTitle,
+  modulePresentation,
   navigateModule,
   navigateTab,
   notice,
+  pagePresentation,
   openUserEditor,
   ready,
   refreshing,
@@ -36,6 +39,23 @@ const {
   token,
   user,
 } = useConsoleApp(route, router)
+
+const sidebarOpen = ref(false)
+
+watch(
+  () => route.fullPath,
+  () => {
+    sidebarOpen.value = false
+  }
+)
+
+function toggleSidebar() {
+  sidebarOpen.value = !sidebarOpen.value
+}
+
+function closeSidebar() {
+  sidebarOpen.value = false
+}
 </script>
 
 <template>
@@ -49,24 +69,36 @@ const {
       @submit="login"
     />
 
-    <div v-else class="admin-layout">
+    <div
+      v-else
+      class="admin-layout"
+      :class="{ 'admin-layout-sidebar-open': sidebarOpen }"
+      :data-module="currentModule"
+    >
+      <button class="sidebar-overlay" type="button" @click="closeSidebar" />
       <SidebarNav
         :counts="counts"
         :current-module="currentModule"
+        :module-presentation="modulePresentation"
+        :user="user"
         @change-module="navigateModule"
+        @close="closeSidebar"
       />
 
       <div class="content-shell">
         <HeaderBar
           :active-path="route.meta.activePath || route.path"
           :module-title="moduleTitle"
+          :module-presentation="modulePresentation"
           :notice="notice"
+          :page-presentation="pagePresentation"
           :refreshing="refreshing"
           :secondary-menus="secondaryMenus"
           :user="user"
           @change-tab="navigateTab"
           @logout="logout"
           @refresh="syncCurrentModule"
+          @toggle-nav="toggleSidebar"
         />
 
         <main class="content">

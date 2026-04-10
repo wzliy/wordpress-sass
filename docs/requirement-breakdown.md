@@ -1,5 +1,7 @@
 # 跨境电商建站 SaaS 需求说明
 
+> 注：本文件保留为历史需求拆分参考。自 2026-04-10 起，系统主线规划以 `docs/prod/02-architecture.md`、`docs/prod/03-exec-plan.md`、[architecture.md](/Users/wangzhulin/IdeaProjects/wordpress-sass/docs/architecture.md) 和 [plan.md](/Users/wangzhulin/IdeaProjects/wordpress-sass/docs/plan.md) 为准。
+
 ## 1. 文档说明
 
 本文档用于重定义当前系统的产品需求基线。

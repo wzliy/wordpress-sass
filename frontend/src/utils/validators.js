@@ -67,6 +67,10 @@ export function validateRegisterSiteForm(form) {
 export function validateProvisionSiteForm(form) {
   const errors = {}
 
+  if (isBlank(form.templateCode)) {
+    errors.templateCode = '请选择站点模板'
+  }
+
   if (isBlank(form.name)) {
     errors.name = '请输入站点名称'
   } else if (String(form.name).trim().length < 2) {
@@ -77,6 +81,18 @@ export function validateProvisionSiteForm(form) {
     errors.adminEmail = '请输入管理员邮箱'
   } else if (!isValidEmail(String(form.adminEmail).trim())) {
     errors.adminEmail = '请输入有效的邮箱地址'
+  }
+
+  if (isBlank(form.countryCode)) {
+    errors.countryCode = '请选择国家'
+  }
+
+  if (isBlank(form.languageCode)) {
+    errors.languageCode = '请选择语言'
+  }
+
+  if (isBlank(form.currencyCode)) {
+    errors.currencyCode = '请选择币种'
   }
 
   if (isBlank(form.subdomainPrefix)) {

@@ -8,8 +8,13 @@ import com.wpss.wordpresssass.site.application.dto.SiteConnectionResultDto;
 import com.wpss.wordpresssass.site.application.dto.SiteDto;
 import com.wpss.wordpresssass.site.application.dto.SiteProvisionResultDto;
 import com.wpss.wordpresssass.site.domain.Site;
+import com.wpss.wordpresssass.site.domain.SiteHomepageConfigRepository;
 import com.wpss.wordpresssass.site.domain.SiteRepository;
 import com.wpss.wordpresssass.site.domain.SiteStatus;
+import com.wpss.wordpresssass.site.domain.SiteSettingRepository;
+import com.wpss.wordpresssass.site.domain.SiteTemplate;
+import com.wpss.wordpresssass.site.domain.SiteTemplateRepository;
+import com.wpss.wordpresssass.site.domain.ThemeConfigRepository;
 import com.wpss.wordpresssass.site.config.MultisiteProperties;
 import com.wpss.wordpresssass.site.infrastructure.provision.ProvisionedSite;
 import com.wpss.wordpresssass.site.infrastructure.provision.ProvisionContext;
@@ -24,13 +29,29 @@ import java.util.List;
 public class SiteApplicationService {
 
     private final SiteRepository siteRepository;
+    private final SiteDomainApplicationService siteDomainApplicationService;
+    private final SiteHomepageConfigRepository siteHomepageConfigRepository;
+    private final SiteTemplateRepository siteTemplateRepository;
+    private final SiteSettingRepository siteSettingRepository;
+    private final ThemeConfigRepository themeConfigRepository;
     private final WpClient wpClient;
     private final SiteProvisioner siteProvisioner;
     private final MultisiteProperties multisiteProperties;
 
-    public SiteApplicationService(SiteRepository siteRepository, WpClient wpClient,
+    public SiteApplicationService(SiteRepository siteRepository,
+                                  SiteDomainApplicationService siteDomainApplicationService,
+                                  SiteHomepageConfigRepository siteHomepageConfigRepository,
+                                  SiteTemplateRepository siteTemplateRepository,
+                                  SiteSettingRepository siteSettingRepository,
+                                  ThemeConfigRepository themeConfigRepository,
+                                  WpClient wpClient,
                                   SiteProvisioner siteProvisioner, MultisiteProperties multisiteProperties) {
         this.siteRepository = siteRepository;
+        this.siteDomainApplicationService = siteDomainApplicationService;
+        this.siteHomepageConfigRepository = siteHomepageConfigRepository;
+        this.siteTemplateRepository = siteTemplateRepository;
+        this.siteSettingRepository = siteSettingRepository;
+        this.themeConfigRepository = themeConfigRepository;
         this.wpClient = wpClient;
         this.siteProvisioner = siteProvisioner;
         this.multisiteProperties = multisiteProperties;
@@ -42,6 +63,7 @@ public class SiteApplicationService {
 
     public SiteDto registerSite(AddSiteCommand command) {
         Long tenantId = requireTenantId();
+        validateInitialDomain(command.baseUrl().trim());
         Site site = Site.register(
                 tenantId,
                 command.name().trim(),
@@ -49,13 +71,29 @@ public class SiteApplicationService {
                 command.wpUsername().trim(),
                 command.appPassword().trim()
         );
-        return SiteDto.from(siteRepository.save(site));
+        Site savedSite = siteRepository.save(site);
+        siteDomainApplicationService.ensurePrimaryDomain(tenantId, savedSite.getId(), savedSite.getDomain());
+        siteHomepageConfigRepository.saveDefaultForSite(savedSite, null);
+        return SiteDto.from(savedSite);
     }
 
     public SiteProvisionResultDto provisionSite(ProvisionSiteCommand command) {
         Long tenantId = requireTenantId();
+        SiteTemplate siteTemplate = siteTemplateRepository.findAccessibleByCode(tenantId, command.templateCode().trim())
+                .orElseThrow(() -> new BusinessException("Template not found"));
         String domain = buildProvisionDomain(command.subdomainPrefix().trim());
-        Site provisioningSite = siteRepository.save(Site.createProvisioning(tenantId, command.name().trim(), domain));
+        validateInitialDomain(domain);
+        Site provisioningSite = siteRepository.save(
+                Site.createProvisioning(
+                        tenantId,
+                        command.name().trim(),
+                        domain,
+                        siteTemplate.getId(),
+                        command.countryCode().trim().toUpperCase(),
+                        command.languageCode().trim().toLowerCase(),
+                        command.currencyCode().trim().toUpperCase()
+                )
+        );
 
         ProvisionedSite provisionedSite = siteProvisioner.provision(
                 provisioningSite,
@@ -74,6 +112,10 @@ public class SiteApplicationService {
                 provisionedSite.message()
         );
         siteRepository.updateProvisionResult(completedSite);
+        siteDomainApplicationService.ensurePrimaryDomain(tenantId, completedSite.getId(), completedSite.getDomain());
+        siteHomepageConfigRepository.saveDefaultForSite(completedSite, siteTemplate);
+        siteSettingRepository.saveDefaultForSite(completedSite, siteTemplate);
+        themeConfigRepository.saveDefaultForSite(completedSite, siteTemplate);
 
         return new SiteProvisionResultDto(
                 completedSite.getId(),
@@ -130,5 +172,11 @@ public class SiteApplicationService {
             throw new BusinessException("Tenant context is missing");
         }
         return tenantId;
+    }
+
+    private void validateInitialDomain(String rawDomain) {
+        if (siteDomainApplicationService.existsDomain(rawDomain)) {
+            throw new BusinessException("Domain already bound");
+        }
     }
 }

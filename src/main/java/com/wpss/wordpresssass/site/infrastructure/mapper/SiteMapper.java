@@ -15,17 +15,20 @@ import java.util.Optional;
 public interface SiteMapper {
 
     @Insert("""
-            INSERT INTO site (tenant_id, name, site_type, base_url, domain, admin_url, auth_type, wp_username,
-                              app_password, status, provision_status, status_msg, created_at)
-            VALUES (#{tenantId}, #{name}, #{siteType}, #{baseUrl}, #{domain}, #{adminUrl}, #{authType},
-                    #{wpUsername}, #{appPassword}, #{status}, #{provisionStatus}, #{statusMsg}, #{createdAt})
+            INSERT INTO site (tenant_id, site_code, name, site_type, base_url, domain, admin_url, auth_type, wp_username,
+                              app_password, status, provision_status, status_msg, template_id,
+                              country_code, language_code, currency_code, theme_color, logo_url, banner_title, banner_subtitle, created_at)
+            VALUES (#{tenantId}, #{siteCode}, #{name}, #{siteType}, #{baseUrl}, #{domain}, #{adminUrl}, #{authType},
+                    #{wpUsername}, #{appPassword}, #{status}, #{provisionStatus}, #{statusMsg}, #{templateId},
+                    #{countryCode}, #{languageCode}, #{currencyCode}, #{themeColor}, #{logoUrl}, #{bannerTitle}, #{bannerSubtitle}, #{createdAt})
             """)
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(SiteDO siteDO);
 
     @Select("""
-            SELECT id, tenant_id, name, site_type, base_url, domain, admin_url, auth_type, wp_username,
-                   app_password, status, provision_status, status_msg, created_at
+            SELECT id, tenant_id, site_code, name, site_type, base_url, domain, admin_url, auth_type, wp_username,
+                   app_password, status, provision_status, status_msg, template_id,
+                   country_code, language_code, currency_code, theme_color, logo_url, banner_title, banner_subtitle, created_at
             FROM site
             WHERE tenant_id = #{tenantId}
             ORDER BY created_at DESC, id DESC
@@ -33,8 +36,9 @@ public interface SiteMapper {
     List<SiteDO> selectByTenantId(Long tenantId);
 
     @Select("""
-            SELECT id, tenant_id, name, site_type, base_url, domain, admin_url, auth_type, wp_username,
-                   app_password, status, provision_status, status_msg, created_at
+            SELECT id, tenant_id, site_code, name, site_type, base_url, domain, admin_url, auth_type, wp_username,
+                   app_password, status, provision_status, status_msg, template_id,
+                   country_code, language_code, currency_code, theme_color, logo_url, banner_title, banner_subtitle, created_at
             FROM site
             WHERE id = #{id} AND tenant_id = #{tenantId}
             LIMIT 1

@@ -1,11 +1,13 @@
 package com.wpss.wordpresssass.site.domain;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public class Site {
 
     private final Long id;
     private final Long tenantId;
+    private final String siteCode;
     private final String name;
     private final SiteType siteType;
     private final String baseUrl;
@@ -17,13 +19,25 @@ public class Site {
     private final SiteStatus status;
     private final ProvisionStatus provisionStatus;
     private final String statusMessage;
+    private final Long templateId;
+    private final String countryCode;
+    private final String languageCode;
+    private final String currencyCode;
+    private final String themeColor;
+    private final String logoUrl;
+    private final String bannerTitle;
+    private final String bannerSubtitle;
     private final LocalDateTime createdAt;
 
-    public Site(Long id, Long tenantId, String name, SiteType siteType, String baseUrl, String domain, String adminUrl,
+    public Site(Long id, Long tenantId, String siteCode, String name, SiteType siteType, String baseUrl, String domain, String adminUrl,
                 String authType, String wpUsername, String appPassword, SiteStatus status,
-                ProvisionStatus provisionStatus, String statusMessage, LocalDateTime createdAt) {
+                ProvisionStatus provisionStatus, String statusMessage, Long templateId,
+                String countryCode, String languageCode, String currencyCode,
+                String themeColor, String logoUrl, String bannerTitle, String bannerSubtitle,
+                LocalDateTime createdAt) {
         this.id = id;
         this.tenantId = tenantId;
+        this.siteCode = siteCode;
         this.name = name;
         this.siteType = siteType;
         this.baseUrl = baseUrl;
@@ -35,6 +49,14 @@ public class Site {
         this.status = status;
         this.provisionStatus = provisionStatus;
         this.statusMessage = statusMessage;
+        this.templateId = templateId;
+        this.countryCode = countryCode;
+        this.languageCode = languageCode;
+        this.currencyCode = currencyCode;
+        this.themeColor = themeColor;
+        this.logoUrl = logoUrl;
+        this.bannerTitle = bannerTitle;
+        this.bannerSubtitle = bannerSubtitle;
         this.createdAt = createdAt;
     }
 
@@ -43,6 +65,7 @@ public class Site {
         return new Site(
                 null,
                 tenantId,
+                generateSiteCode(name),
                 name,
                 SiteType.REGISTERED,
                 normalizedBaseUrl,
@@ -54,15 +77,30 @@ public class Site {
                 SiteStatus.ENABLED,
                 ProvisionStatus.NONE,
                 "CREATED",
+                null,
+                null,
+                null,
+                null,
+                "#2563EB",
+                null,
+                name,
+                "Your storefront is ready to be customized.",
                 LocalDateTime.now()
         );
     }
 
-    public static Site createProvisioning(Long tenantId, String name, String domain) {
+    public static Site createProvisioning(Long tenantId,
+                                          String name,
+                                          String domain,
+                                          Long templateId,
+                                          String countryCode,
+                                          String languageCode,
+                                          String currencyCode) {
         String normalizedDomain = normalizeBaseUrl(domain);
         return new Site(
                 null,
                 tenantId,
+                generateSiteCode(name),
                 name,
                 SiteType.PROVISIONED,
                 normalizedDomain,
@@ -74,19 +112,29 @@ public class Site {
                 SiteStatus.DISABLED,
                 ProvisionStatus.PROVISIONING,
                 "Provisioning site",
+                templateId,
+                countryCode,
+                languageCode,
+                currencyCode,
+                "#2563EB",
+                null,
+                name,
+                "Provisioning storefront assets and default homepage blocks.",
                 LocalDateTime.now()
         );
     }
 
     public Site withId(Long newId) {
-        return new Site(newId, tenantId, name, siteType, baseUrl, domain, adminUrl, authType, wpUsername,
-                appPassword, status, provisionStatus, statusMessage, createdAt);
+        return new Site(newId, tenantId, siteCode, name, siteType, baseUrl, domain, adminUrl, authType, wpUsername,
+                appPassword, status, provisionStatus, statusMessage, templateId, countryCode, languageCode, currencyCode,
+                themeColor, logoUrl, bannerTitle, bannerSubtitle, createdAt);
     }
 
     public Site withConnectionStatus(boolean connected, String message) {
         return new Site(
                 id,
                 tenantId,
+                siteCode,
                 name,
                 siteType,
                 baseUrl,
@@ -98,6 +146,14 @@ public class Site {
                 connected ? SiteStatus.ENABLED : SiteStatus.DISABLED,
                 provisionStatus,
                 message,
+                templateId,
+                countryCode,
+                languageCode,
+                currencyCode,
+                themeColor,
+                logoUrl,
+                bannerTitle,
+                bannerSubtitle,
                 createdAt
         );
     }
@@ -107,6 +163,7 @@ public class Site {
         return new Site(
                 id,
                 tenantId,
+                siteCode,
                 name,
                 SiteType.PROVISIONED,
                 normalizeBaseUrl(baseUrl),
@@ -118,8 +175,25 @@ public class Site {
                 SiteStatus.ENABLED,
                 ProvisionStatus.ACTIVE,
                 message,
+                templateId,
+                countryCode,
+                languageCode,
+                currencyCode,
+                themeColor,
+                logoUrl,
+                bannerTitle,
+                bannerSubtitle,
                 createdAt
         );
+    }
+
+    private static String generateSiteCode(String name) {
+        String normalized = name == null ? "" : name.trim().toLowerCase()
+                .replaceAll("[^a-z0-9]+", "-")
+                .replaceAll("(^-+|-+$)", "");
+        String prefix = normalized.isBlank() ? "site" : normalized;
+        String suffix = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        return prefix + "-" + suffix;
     }
 
     private static String normalizeBaseUrl(String baseUrl) {
@@ -136,6 +210,10 @@ public class Site {
 
     public Long getTenantId() {
         return tenantId;
+    }
+
+    public String getSiteCode() {
+        return siteCode;
     }
 
     public String getName() {
@@ -180,6 +258,38 @@ public class Site {
 
     public String getStatusMessage() {
         return statusMessage;
+    }
+
+    public Long getTemplateId() {
+        return templateId;
+    }
+
+    public String getCountryCode() {
+        return countryCode;
+    }
+
+    public String getLanguageCode() {
+        return languageCode;
+    }
+
+    public String getCurrencyCode() {
+        return currencyCode;
+    }
+
+    public String getThemeColor() {
+        return themeColor;
+    }
+
+    public String getLogoUrl() {
+        return logoUrl;
+    }
+
+    public String getBannerTitle() {
+        return bannerTitle;
+    }
+
+    public String getBannerSubtitle() {
+        return bannerSubtitle;
     }
 
     public LocalDateTime getCreatedAt() {

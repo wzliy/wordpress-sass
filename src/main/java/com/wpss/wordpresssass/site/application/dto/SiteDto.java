@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 public record SiteDto(
         Long id,
         Long tenantId,
+        String siteCode,
         String name,
         String siteType,
         String baseUrl,
@@ -17,6 +18,14 @@ public record SiteDto(
         Integer status,
         String provisionStatus,
         String statusMessage,
+        Long templateId,
+        String countryCode,
+        String languageCode,
+        String currencyCode,
+        String themeColor,
+        String logoUrl,
+        String bannerTitle,
+        String bannerSubtitle,
         LocalDateTime createdAt
 ) {
 
@@ -24,6 +33,7 @@ public record SiteDto(
         return new SiteDto(
                 site.getId(),
                 site.getTenantId(),
+                site.getSiteCode(),
                 site.getName(),
                 site.getSiteType().name(),
                 site.getBaseUrl(),
@@ -34,6 +44,14 @@ public record SiteDto(
                 site.getStatus().getCode(),
                 site.getProvisionStatus().name(),
                 site.getStatusMessage(),
+                site.getTemplateId(),
+                site.getCountryCode(),
+                site.getLanguageCode(),
+                site.getCurrencyCode(),
+                site.getThemeColor(),
+                site.getLogoUrl(),
+                site.getBannerTitle(),
+                site.getBannerSubtitle(),
                 site.getCreatedAt()
         );
     }

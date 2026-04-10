@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${page.siteName}">Storefront Home</title>
+    <style>
+        :root {
+            color-scheme: light;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            --accent: #2563EB;
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Avenir Next", "Segoe UI", sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(255, 255, 255, 0.92), transparent 34%),
+                linear-gradient(140deg, #fffaf0 0%, #f4f7fb 48%, #eef4ff 100%);
+            color: #14213d;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .shell {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 28px 20px 56px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 28px;
+            padding: 14px 18px;
+            border: 1px solid rgba(20, 33, 61, 0.08);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.78);
+            backdrop-filter: blur(16px);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-mark,
+        .brand-logo {
+            width: 52px;
+            height: 52px;
+            border-radius: 18px;
+            object-fit: cover;
+            box-shadow: 0 16px 32px rgba(20, 33, 61, 0.16);
+        }
+
+        .brand-mark {
+            display: grid;
+            place-items: center;
+            background: linear-gradient(160deg, var(--accent), #14213d);
+            color: #ffffff;
+            font-family: "Iowan Old Style", Georgia, serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        .brand-copy strong {
+            display: block;
+            font-size: 0.98rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .brand-copy span {
+            display: block;
+            margin-top: 4px;
+            color: #5c677d;
+            font-size: 0.92rem;
+        }
+
+        .menu {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .menu a {
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: rgba(20, 33, 61, 0.06);
+            font-size: 0.92rem;
+            font-weight: 600;
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.9fr);
+            gap: 22px;
+            align-items: stretch;
+        }
+
+        .hero-main,
+        .hero-side,
+        .section-card {
+            border: 1px solid rgba(20, 33, 61, 0.08);
+            border-radius: 28px;
+            background: rgba(255, 255, 255, 0.88);
+            box-shadow: 0 22px 54px rgba(20, 33, 61, 0.08);
+        }
+
+        .hero-main {
+            padding: 34px;
+            background:
+                radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 14%, white), transparent 36%),
+                rgba(255, 255, 255, 0.9);
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 12px;
+            border-radius: 999px;
+            background: color-mix(in srgb, var(--accent) 12%, white);
+            color: var(--accent);
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 18px 0 14px;
+            font-family: "Iowan Old Style", Georgia, serif;
+            font-size: clamp(2.5rem, 6vw, 4.6rem);
+            line-height: 0.95;
+        }
+
+        .hero-main p {
+            max-width: 44rem;
+            margin: 0;
+            color: #4f5d75;
+            font-size: 1.02rem;
+            line-height: 1.7;
+        }
+
+        .hero-meta {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 26px;
+        }
+
+        .hero-metric {
+            padding: 16px;
+            border-radius: 20px;
+            background: rgba(20, 33, 61, 0.05);
+        }
+
+        .hero-metric span {
+            display: block;
+            margin-bottom: 8px;
+            color: #5c677d;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .hero-metric strong {
+            font-size: 1rem;
+        }
+
+        .hero-side {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 28px;
+            gap: 18px;
+        }
+
+        .hero-side h2 {
+            margin: 0;
+            font-size: 1.15rem;
+        }
+
+        .hero-side p,
+        .section-card p {
+            margin: 0;
+            color: #5c677d;
+            line-height: 1.6;
+        }
+
+        .accent-swatch {
+            width: 100%;
+            height: 90px;
+            border-radius: 24px;
+            background:
+                linear-gradient(160deg, color-mix(in srgb, var(--accent) 82%, white), #14213d);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 22px;
+            margin-top: 22px;
+        }
+
+        .section-card {
+            padding: 26px;
+        }
+
+        .section-card h3 {
+            margin: 0 0 12px;
+            font-size: 1.15rem;
+        }
+
+        .featured-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+            margin-top: 18px;
+        }
+
+        .feature-card,
+        .empty-card {
+            padding: 18px;
+            border-radius: 22px;
+            background: rgba(20, 33, 61, 0.05);
+        }
+
+        .feature-card strong,
+        .empty-card strong {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .feature-card span {
+            display: inline-flex;
+            margin-bottom: 10px;
+            padding: 5px 10px;
+            border-radius: 999px;
+            background: color-mix(in srgb, var(--accent) 10%, white);
+            color: var(--accent);
+            font-size: 0.74rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .footer-note {
+            margin-top: 24px;
+            color: #7d8597;
+            font-size: 0.92rem;
+            text-align: center;
+        }
+
+        @media (max-width: 900px) {
+            .topbar,
+            .hero {
+                grid-template-columns: 1fr;
+            }
+
+            .topbar {
+                border-radius: 28px;
+                align-items: flex-start;
+            }
+
+            .menu {
+                justify-content: flex-start;
+            }
+
+            .hero-meta,
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body th:style="'--accent:' + ${page.themeColor} + ';'">
+<main class="shell">
+    <header class="topbar">
+        <div class="brand">
+            <img
+                th:if="${page.logoUrl != null}"
+                class="brand-logo"
+                th:src="${page.logoUrl}"
+                th:alt="${page.siteName}"
+            >
+            <div th:if="${page.logoUrl == null}" class="brand-mark" th:text="${page.siteInitial}">S</div>
+            <div class="brand-copy">
+                <strong th:text="${page.siteName}">Storefront Home</strong>
+                <span th:text="${page.siteCode}">site-code</span>
+            </div>
+        </div>
+        <nav class="menu">
+            <a th:each="item : ${page.menuItems}" th:href="${item.path}" th:text="${item.label}">Menu</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <article class="hero-main">
+            <span class="eyebrow">Storefront Home</span>
+            <h1 th:text="${page.bannerTitle}">Banner Title</h1>
+            <p th:text="${page.bannerSubtitle}">Banner subtitle</p>
+            <div class="hero-meta">
+                <div class="hero-metric">
+                    <span>Primary Domain</span>
+                    <strong th:text="${page.primaryDomain}">domain.example</strong>
+                </div>
+                <div class="hero-metric">
+                    <span>Language</span>
+                    <strong th:text="${page.languageCode}">en</strong>
+                </div>
+                <div class="hero-metric">
+                    <span>Currency</span>
+                    <strong th:text="${page.currencyCode}">USD</strong>
+                </div>
+            </div>
+        </article>
+
+        <aside class="hero-side">
+            <div>
+                <h2>Theme Preview</h2>
+                <p>This storefront is now rendered from the resolved host and homepage config contract.</p>
+            </div>
+            <div class="accent-swatch"></div>
+            <div>
+                <h2>Next Build Steps</h2>
+                <p>Category, product and checkout routes will attach to this storefront shell in the following phases.</p>
+            </div>
+        </aside>
+    </section>
+
+    <section class="grid">
+        <article class="section-card">
+            <h3>Featured Products</h3>
+            <p>Homepage config already reserves featured slots. Product data will be attached after catalog modules land.</p>
+            <div th:if="${#lists.isEmpty(page.featuredProductIds)}" class="empty-card">
+                <strong>No featured products yet</strong>
+                <p>Update homepage config after catalog publishing is available.</p>
+            </div>
+            <div th:if="${!#lists.isEmpty(page.featuredProductIds)}" class="featured-grid">
+                <article th:each="featuredId : ${page.featuredProductIds}" class="feature-card">
+                    <span>Configured Slot</span>
+                    <strong th:text="'Product #' + ${featuredId}">Product #1</strong>
+                    <p>Catalog details will hydrate this card in Phase 3.</p>
+                </article>
+            </div>
+        </article>
+
+        <article class="section-card">
+            <h3>Fallback-Proof Rendering</h3>
+            <p>When the incoming host matches an active site, the storefront now resolves to a dedicated template instead of controller-inline HTML.</p>
+            <div class="featured-grid">
+                <article class="feature-card">
+                    <span>Template</span>
+                    <strong>Thymeleaf Home</strong>
+                    <p>Shared storefront shell for demo iteration.</p>
+                </article>
+                <article class="feature-card">
+                    <span>Config</span>
+                    <strong>Homepage JSON</strong>
+                    <p>Banner, menu and featured slots come from persisted config.</p>
+                </article>
+            </div>
+        </article>
+    </section>
+
+    <p class="footer-note">Resolved by host routing, rendered by Spring Boot, ready for catalog and checkout modules.</p>
+</main>
+</body>
+</html>

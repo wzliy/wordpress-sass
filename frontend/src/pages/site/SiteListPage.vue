@@ -33,6 +33,9 @@ const props = defineProps({
 
 defineEmits(['retry', 'test-site'])
 
+const provisionedCount = computed(() => props.sites.filter((site) => site.siteType === 'PROVISIONED').length)
+const registeredCount = computed(() => props.sites.filter((site) => site.siteType === 'REGISTERED').length)
+
 const searchKeyword = ref('')
 const typeFilter = ref('ALL')
 const statusFilter = ref('ALL')
@@ -85,7 +88,26 @@ function changePage(page) {
 </script>
 
 <template>
-  <section class="panel">
+  <section class="page-stack">
+    <div class="signal-grid">
+      <article class="signal-card">
+        <span>Active Stores</span>
+        <strong>{{ activeSiteCount }}</strong>
+        <p>当前保持可访问的站点资产。</p>
+      </article>
+      <article class="signal-card">
+        <span>Provisioned</span>
+        <strong>{{ provisionedCount }}</strong>
+        <p>通过模板和自动流程创建的新站点。</p>
+      </article>
+      <article class="signal-card">
+        <span>Registered</span>
+        <strong>{{ registeredCount }}</strong>
+        <p>接入的已有外部站点数量。</p>
+      </article>
+    </div>
+
+    <section class="panel">
     <div class="panel-header">
       <h3>站点列表</h3>
       <div class="panel-stats">
@@ -163,6 +185,7 @@ function changePage(page) {
           <tr v-for="site in pagedSites" :key="site.id">
             <td>
               <div class="table-title">{{ site.name }}</div>
+              <div class="table-sub">{{ site.siteCode }}</div>
               <div class="table-sub">{{ site.baseUrl }}</div>
             </td>
             <td>{{ site.siteType }}</td>
@@ -173,6 +196,7 @@ function changePage(page) {
             <td>{{ site.adminUrl || '-' }}</td>
             <td>{{ site.wpUsername }}</td>
             <td class="actions-cell">
+              <RouterLink class="table-link" :to="`/sites/${site.id}/workspace`">工作台</RouterLink>
               <button class="table-link" @click="$emit('test-site', site)" :disabled="testId === site.id">
                 {{ testId === site.id ? '测试中' : '测试' }}
               </button>
@@ -189,5 +213,6 @@ function changePage(page) {
       :total-pages="totalPages"
       @change="changePage"
     />
+    </section>
   </section>
 </template>

@@ -10,6 +10,14 @@ public record ProvisionSiteCommand(
         @Email(message = "must be a valid email")
         String adminEmail,
         @NotBlank(message = "must not be blank")
+        String templateCode,
+        @NotBlank(message = "must not be blank")
+        String countryCode,
+        @NotBlank(message = "must not be blank")
+        String languageCode,
+        @NotBlank(message = "must not be blank")
+        String currencyCode,
+        @NotBlank(message = "must not be blank")
         String subdomainPrefix
 ) {
 }

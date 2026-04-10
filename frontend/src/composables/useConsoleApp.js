@@ -3,9 +3,9 @@ import { currentUser as fetchCurrentUser, login as loginRequest } from '../api/a
 import { AUTH_EXPIRED_EVENT, TOKEN_KEY, USER_KEY } from '../api/http'
 import { createPost, listPosts } from '../api/post'
 import { listPublishRecords, publishPost as publishPostRequest } from '../api/publish'
-import { listSites, provisionSite, registerSite, testSiteConnection } from '../api/site'
+import { getSiteWorkspace, listSiteTemplates, listSites, provisionSite, registerSite, testSiteConnection } from '../api/site'
 import { changePassword, createUser, disableUser, enableUser, getUserDetail, listUsers, updateUserProfile } from '../api/user'
-import { MODULE_TITLES, SECONDARY_MENUS, moduleDefaultPath } from '../config/navigation'
+import { MODULE_PRESENTATIONS, MODULE_TITLES, PAGE_PRESENTATIONS, SECONDARY_MENUS, moduleDefaultPath } from '../config/navigation'
 import {
   validateChangePasswordForm,
   validateCreateUserForm,
@@ -27,6 +27,8 @@ export function useConsoleApp(route, router) {
   const sites = ref([])
   const posts = ref([])
   const users = ref([])
+  const siteWorkspace = ref(null)
+  const siteTemplates = ref([])
 
   const loginForm = reactive({
     username: 'admin',
@@ -41,8 +43,12 @@ export function useConsoleApp(route, router) {
   })
 
   const provisionForm = reactive({
+    templateCode: '',
     name: '',
     adminEmail: '',
+    countryCode: 'US',
+    languageCode: 'en',
+    currencyCode: 'USD',
     subdomainPrefix: '',
   })
 
@@ -84,6 +90,8 @@ export function useConsoleApp(route, router) {
     createPost: false,
     publish: false,
     publishRecords: false,
+    siteWorkspace: false,
+    siteTemplates: false,
     createUser: false,
     updateUser: false,
     changePassword: false,
@@ -97,6 +105,8 @@ export function useConsoleApp(route, router) {
     posts: '',
     publishRecords: '',
     users: '',
+    siteWorkspace: '',
+    siteTemplates: '',
   })
 
   const formErrors = reactive({
@@ -113,8 +123,12 @@ export function useConsoleApp(route, router) {
       form: '',
     },
     provision: {
+      templateCode: '',
       name: '',
       adminEmail: '',
+      countryCode: '',
+      languageCode: '',
+      currencyCode: '',
       subdomainPrefix: '',
       form: '',
     },
@@ -167,6 +181,8 @@ export function useConsoleApp(route, router) {
   }))
   const currentModule = computed(() => route.meta.module || 'dashboard')
   const moduleTitle = computed(() => MODULE_TITLES[currentModule.value] || '管理后台')
+  const modulePresentation = computed(() => MODULE_PRESENTATIONS[currentModule.value] || MODULE_PRESENTATIONS.dashboard)
+  const pagePresentation = computed(() => PAGE_PRESENTATIONS[route.name] || modulePresentation.value)
   const secondaryMenus = computed(() => SECONDARY_MENUS[currentModule.value] || [])
   const refreshing = computed(() => loading.sites || loading.posts || loading.users)
   const activeViewProps = computed(() => {
@@ -193,6 +209,14 @@ export function useConsoleApp(route, router) {
       }
     }
 
+    if (route.name === 'site-workspace') {
+      return {
+        workspace: siteWorkspace.value,
+        loading: loading.siteWorkspace,
+        errorMessage: errors.siteWorkspace,
+      }
+    }
+
     if (route.name === 'site-register') {
       return {
         form: registerForm,
@@ -206,6 +230,9 @@ export function useConsoleApp(route, router) {
         form: provisionForm,
         errors: formErrors.provision,
         loading: loading.provision,
+        templates: siteTemplates.value,
+        templateLoading: loading.siteTemplates,
+        templateError: errors.siteTemplates,
       }
     }
 
@@ -331,6 +358,9 @@ export function useConsoleApp(route, router) {
     sites.value = []
     posts.value = []
     users.value = []
+    siteWorkspace.value = null
+    siteTemplates.value = []
+    provisionForm.templateCode = ''
     localStorage.removeItem(TOKEN_KEY)
     localStorage.removeItem(USER_KEY)
   }
@@ -422,6 +452,21 @@ export function useConsoleApp(route, router) {
     }
   }
 
+  async function loadSiteWorkspace(siteId) {
+    if (!token.value || !siteId) return
+    loading.siteWorkspace = true
+    try {
+      siteWorkspace.value = await getSiteWorkspace(Number(siteId))
+      errors.siteWorkspace = ''
+    } catch (error) {
+      siteWorkspace.value = null
+      errors.siteWorkspace = error.message
+      setNotice('error', error.message)
+    } finally {
+      loading.siteWorkspace = false
+    }
+  }
+
   async function loadPosts() {
     if (!token.value) return
     loading.posts = true
@@ -482,11 +527,35 @@ export function useConsoleApp(route, router) {
     }
   }
 
+  async function loadSiteTemplates() {
+    if (!token.value) return
+    loading.siteTemplates = true
+    try {
+      siteTemplates.value = await listSiteTemplates()
+      const selectedStillExists = siteTemplates.value.some((template) => template.code === provisionForm.templateCode)
+      if ((!provisionForm.templateCode || !selectedStillExists) && siteTemplates.value.length > 0) {
+        provisionForm.templateCode = siteTemplates.value[0].code
+      }
+      errors.siteTemplates = ''
+    } catch (error) {
+      errors.siteTemplates = error.message
+      setNotice('error', error.message)
+    } finally {
+      loading.siteTemplates = false
+    }
+  }
+
   async function syncCurrentModule() {
     if (currentModule.value === 'dashboard') {
       await Promise.all([loadSites(), loadPosts(), loadPublishRecords(), loadUsers()])
     }
-    if (currentModule.value === 'site') await loadSites()
+    if (currentModule.value === 'site') {
+      if (route.name === 'site-workspace' && route.params.id) {
+        await Promise.all([loadSites(), loadSiteWorkspace(route.params.id), loadSiteTemplates()])
+      } else {
+        await Promise.all([loadSites(), loadSiteTemplates()])
+      }
+    }
     if (currentModule.value === 'post') await loadPosts()
     if (currentModule.value === 'publish') await Promise.all([loadPosts(), loadSites(), loadPublishRecords()])
     if (currentModule.value === 'user') await loadUsers()
@@ -501,7 +570,7 @@ export function useConsoleApp(route, router) {
 
     loading.register = true
     try {
-      await registerSite({ ...registerForm })
+      const site = await registerSite({ ...registerForm })
       registerForm.name = ''
       registerForm.baseUrl = ''
       registerForm.wpUsername = ''
@@ -509,7 +578,7 @@ export function useConsoleApp(route, router) {
       clearErrorBag(formErrors.register)
       setNotice('success', '站点已创建')
       await loadSites()
-      await router.push('/sites/list')
+      await router.push(`/sites/${site.id}/workspace`)
     } catch (error) {
       formErrors.register.form = error.message
       setNotice('error', error.message)
@@ -526,14 +595,17 @@ export function useConsoleApp(route, router) {
 
     loading.provision = true
     try {
-      await provisionSite({ ...provisionForm })
+      const result = await provisionSite({ ...provisionForm })
       provisionForm.name = ''
       provisionForm.adminEmail = ''
+      provisionForm.countryCode = 'US'
+      provisionForm.languageCode = 'en'
+      provisionForm.currencyCode = 'USD'
       provisionForm.subdomainPrefix = ''
       clearErrorBag(formErrors.provision)
-      setNotice('success', '建站完成')
+      setNotice('success', '建站完成，已进入工作台')
       await loadSites()
-      await router.push('/sites/list')
+      await router.push(`/sites/${result.siteId}/workspace`)
     } catch (error) {
       formErrors.provision.form = error.message
       setNotice('error', error.message)
@@ -727,6 +799,12 @@ export function useConsoleApp(route, router) {
       if (routeName === 'user-edit' && nextId && nextToken) {
         await loadUserDetail(nextId)
       }
+      if (routeName === 'site-workspace' && nextId && nextToken) {
+        await loadSiteWorkspace(nextId)
+      }
+      if (routeName === 'site-provision' && nextToken) {
+        await loadSiteTemplates()
+      }
     },
     { immediate: true },
   )
@@ -746,13 +824,17 @@ export function useConsoleApp(route, router) {
     loadPosts,
     loadPublishRecords,
     loadSites,
+    loadSiteWorkspace,
+    loadSiteTemplates,
     loadUsers,
     login,
     logout,
+    modulePresentation,
     moduleTitle,
     navigateModule,
     navigateTab,
     notice,
+    pagePresentation,
     ready,
     refreshing,
     secondaryMenus,

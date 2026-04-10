@@ -2,11 +2,15 @@ package com.wpss.wordpresssass.site.interfaces;
 
 import com.wpss.wordpresssass.common.api.ApiResponse;
 import com.wpss.wordpresssass.site.application.SiteApplicationService;
+import com.wpss.wordpresssass.site.application.SiteTemplateApplicationService;
+import com.wpss.wordpresssass.site.application.SiteWorkspaceApplicationService;
 import com.wpss.wordpresssass.site.application.command.AddSiteCommand;
 import com.wpss.wordpresssass.site.application.command.ProvisionSiteCommand;
 import com.wpss.wordpresssass.site.application.dto.SiteConnectionResultDto;
 import com.wpss.wordpresssass.site.application.dto.SiteDto;
 import com.wpss.wordpresssass.site.application.dto.SiteProvisionResultDto;
+import com.wpss.wordpresssass.site.application.dto.SiteTemplateDto;
+import com.wpss.wordpresssass.site.application.dto.SiteWorkspaceDto;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,9 +26,15 @@ import java.util.List;
 public class SiteController {
 
     private final SiteApplicationService siteApplicationService;
+    private final SiteTemplateApplicationService siteTemplateApplicationService;
+    private final SiteWorkspaceApplicationService siteWorkspaceApplicationService;
 
-    public SiteController(SiteApplicationService siteApplicationService) {
+    public SiteController(SiteApplicationService siteApplicationService,
+                          SiteTemplateApplicationService siteTemplateApplicationService,
+                          SiteWorkspaceApplicationService siteWorkspaceApplicationService) {
         this.siteApplicationService = siteApplicationService;
+        this.siteTemplateApplicationService = siteTemplateApplicationService;
+        this.siteWorkspaceApplicationService = siteWorkspaceApplicationService;
     }
 
     @PostMapping("/add")
@@ -47,8 +57,18 @@ public class SiteController {
         return ApiResponse.success(siteApplicationService.listSites());
     }
 
+    @GetMapping("/template/list")
+    public ApiResponse<List<SiteTemplateDto>> listTemplates() {
+        return ApiResponse.success(siteTemplateApplicationService.listTemplates());
+    }
+
     @GetMapping("/test")
     public ApiResponse<SiteConnectionResultDto> test(@RequestParam("id") Long id) {
         return ApiResponse.success(siteApplicationService.testConnection(id));
+    }
+
+    @GetMapping("/workspace")
+    public ApiResponse<SiteWorkspaceDto> workspace(@RequestParam("id") Long id) {
+        return ApiResponse.success(siteWorkspaceApplicationService.getWorkspace(id));
     }
 }
