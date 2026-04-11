@@ -145,6 +145,11 @@ export const PAGE_PRESENTATIONS = {
     title: '站点工作台',
     description: '把准备度、模块状态和快捷动作收口到单站点操作视图。',
   },
+  'site-page-editor': {
+    eyebrow: 'Page Builder',
+    title: '首页编辑器',
+    description: '围绕首页结构、菜单和精选商品做草稿、预览和发布。',
+  },
   'post-list': {
     eyebrow: 'Content Stream',
     title: '文章列表',

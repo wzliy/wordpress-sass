@@ -1,0 +1,19 @@
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT:3306}/${DB_NAME}?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+management:
+  endpoint:
+    health:
+      show-details: never
+
+app:
+  auth:
+    issuer: ${APP_AUTH_ISSUER:wordpress-sass-dev}
+  bootstrap:
+    demo-catalog-enabled: ${APP_BOOTSTRAP_DEMO_CATALOG_ENABLED:false}

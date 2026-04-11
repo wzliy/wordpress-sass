@@ -3,7 +3,21 @@ import { currentUser as fetchCurrentUser, login as loginRequest } from '../api/a
 import { AUTH_EXPIRED_EVENT, TOKEN_KEY, USER_KEY } from '../api/http'
 import { createPost, listPosts } from '../api/post'
 import { listPublishRecords, publishPost as publishPostRequest } from '../api/publish'
-import { getSiteWorkspace, listSiteTemplates, listSites, provisionSite, registerSite, testSiteConnection } from '../api/site'
+import {
+  getSitePageEditor,
+  getSiteWorkspace,
+  listSitePages,
+  listSitePageVersions,
+  listSiteTemplates,
+  listSites,
+  previewSitePage as previewSitePageRequest,
+  provisionSite,
+  publishSitePage as publishSitePageRequest,
+  registerSite,
+  rollbackSitePageVersion as rollbackSitePageVersionRequest,
+  saveSitePageDraft as saveSitePageDraftRequest,
+  testSiteConnection,
+} from '../api/site'
 import { changePassword, createUser, disableUser, enableUser, getUserDetail, listUsers, updateUserProfile } from '../api/user'
 import { MODULE_PRESENTATIONS, MODULE_TITLES, PAGE_PRESENTATIONS, SECONDARY_MENUS, moduleDefaultPath } from '../config/navigation'
 import {
@@ -28,6 +42,10 @@ export function useConsoleApp(route, router) {
   const posts = ref([])
   const users = ref([])
   const siteWorkspace = ref(null)
+  const sitePages = ref([])
+  const sitePageEditor = ref(null)
+  const sitePagePreview = ref(null)
+  const sitePageVersions = ref([])
   const siteTemplates = ref([])
 
   const loginForm = reactive({
@@ -91,7 +109,12 @@ export function useConsoleApp(route, router) {
     publish: false,
     publishRecords: false,
     siteWorkspace: false,
+    sitePageEditor: false,
     siteTemplates: false,
+    saveSitePage: false,
+    previewSitePage: false,
+    publishSitePage: false,
+    rollbackSitePage: false,
     createUser: false,
     updateUser: false,
     changePassword: false,
@@ -106,6 +129,7 @@ export function useConsoleApp(route, router) {
     publishRecords: '',
     users: '',
     siteWorkspace: '',
+    sitePageEditor: '',
     siteTemplates: '',
   })
 
@@ -214,6 +238,21 @@ export function useConsoleApp(route, router) {
         workspace: siteWorkspace.value,
         loading: loading.siteWorkspace,
         errorMessage: errors.siteWorkspace,
+      }
+    }
+
+    if (route.name === 'site-page-editor') {
+      return {
+        pages: sitePages.value,
+        editor: sitePageEditor.value,
+        preview: sitePagePreview.value,
+        versions: sitePageVersions.value,
+        loading: loading.sitePageEditor,
+        saving: loading.saveSitePage,
+        previewing: loading.previewSitePage,
+        publishing: loading.publishSitePage,
+        rollingBack: loading.rollbackSitePage,
+        errorMessage: errors.sitePageEditor,
       }
     }
 
@@ -359,6 +398,10 @@ export function useConsoleApp(route, router) {
     posts.value = []
     users.value = []
     siteWorkspace.value = null
+    sitePages.value = []
+    sitePageEditor.value = null
+    sitePagePreview.value = null
+    sitePageVersions.value = []
     siteTemplates.value = []
     provisionForm.templateCode = ''
     localStorage.removeItem(TOKEN_KEY)
@@ -467,6 +510,32 @@ export function useConsoleApp(route, router) {
     }
   }
 
+  async function loadSitePageEditor(siteId, pageKey = 'HOME') {
+    if (!token.value || !siteId || !pageKey) return
+    loading.sitePageEditor = true
+    try {
+      const [pages, editor, versions] = await Promise.all([
+        listSitePages(Number(siteId)),
+        getSitePageEditor(Number(siteId), String(pageKey).toUpperCase()),
+        listSitePageVersions(Number(siteId), String(pageKey).toUpperCase()),
+      ])
+      sitePages.value = pages
+      sitePageEditor.value = editor
+      sitePageVersions.value = versions
+      sitePagePreview.value = null
+      errors.sitePageEditor = ''
+    } catch (error) {
+      sitePages.value = []
+      sitePageEditor.value = null
+      sitePagePreview.value = null
+      sitePageVersions.value = []
+      errors.sitePageEditor = error.message
+      setNotice('error', error.message)
+    } finally {
+      loading.sitePageEditor = false
+    }
+  }
+
   async function loadPosts() {
     if (!token.value) return
     loading.posts = true
@@ -552,6 +621,8 @@ export function useConsoleApp(route, router) {
     if (currentModule.value === 'site') {
       if (route.name === 'site-workspace' && route.params.id) {
         await Promise.all([loadSites(), loadSiteWorkspace(route.params.id), loadSiteTemplates()])
+      } else if (route.name === 'site-page-editor' && route.params.id && route.params.pageKey) {
+        await Promise.all([loadSites(), loadSitePageEditor(route.params.id, route.params.pageKey)])
       } else {
         await Promise.all([loadSites(), loadSiteTemplates()])
       }
@@ -788,19 +859,127 @@ export function useConsoleApp(route, router) {
     }
   }
 
+  async function saveSitePageDraft(payload) {
+    if (!route.params.id || !route.params.pageKey) return
+    loading.saveSitePage = true
+    try {
+      sitePageEditor.value = await saveSitePageDraftRequest(
+        Number(route.params.id),
+        String(route.params.pageKey).toUpperCase(),
+        payload,
+      )
+      sitePageVersions.value = await listSitePageVersions(
+        Number(route.params.id),
+        String(route.params.pageKey).toUpperCase(),
+      )
+      sitePagePreview.value = null
+      setNotice('success', `${sitePageEditor.value.pageName} 草稿已保存`)
+    } catch (error) {
+      setNotice('error', error.message)
+    } finally {
+      loading.saveSitePage = false
+    }
+  }
+
+  async function previewSitePage(payload = null) {
+    if (!route.params.id || !route.params.pageKey) return
+    loading.previewSitePage = true
+    try {
+      if (payload) {
+        sitePageEditor.value = await saveSitePageDraftRequest(
+          Number(route.params.id),
+          String(route.params.pageKey).toUpperCase(),
+          payload,
+        )
+        sitePageVersions.value = await listSitePageVersions(
+          Number(route.params.id),
+          String(route.params.pageKey).toUpperCase(),
+        )
+      }
+      sitePagePreview.value = await previewSitePageRequest(
+        Number(route.params.id),
+        String(route.params.pageKey).toUpperCase(),
+      )
+      setNotice('success', `${sitePageEditor.value?.pageName || '页面'} 预览已更新`)
+    } catch (error) {
+      setNotice('error', error.message)
+    } finally {
+      loading.previewSitePage = false
+    }
+  }
+
+  async function publishSitePage(payload = null) {
+    if (!route.params.id || !route.params.pageKey) return
+    loading.publishSitePage = true
+    try {
+      if (payload) {
+        sitePageEditor.value = await saveSitePageDraftRequest(
+          Number(route.params.id),
+          String(route.params.pageKey).toUpperCase(),
+          payload,
+        )
+        sitePageVersions.value = await listSitePageVersions(
+          Number(route.params.id),
+          String(route.params.pageKey).toUpperCase(),
+        )
+      }
+      sitePagePreview.value = await publishSitePageRequest(
+        Number(route.params.id),
+        String(route.params.pageKey).toUpperCase(),
+      )
+      await Promise.all([
+        loadSitePageEditor(route.params.id, route.params.pageKey),
+        loadSiteWorkspace(route.params.id),
+      ])
+      setNotice('success', `${sitePageEditor.value?.pageName || '页面'} 已发布`)
+    } catch (error) {
+      setNotice('error', error.message)
+    } finally {
+      loading.publishSitePage = false
+    }
+  }
+
+  async function rollbackSitePageVersion(payload) {
+    if (!route.params.id || !route.params.pageKey || !payload?.versionId) return
+    loading.rollbackSitePage = true
+    try {
+      sitePageEditor.value = await rollbackSitePageVersionRequest(
+        Number(route.params.id),
+        String(route.params.pageKey).toUpperCase(),
+        Number(payload.versionId),
+        {
+          versionNote: payload.versionNote || '',
+        },
+      )
+      sitePageVersions.value = await listSitePageVersions(
+        Number(route.params.id),
+        String(route.params.pageKey).toUpperCase(),
+      )
+      sitePagePreview.value = null
+      setNotice('success', `${sitePageEditor.value.pageName} 已回滚到历史版本草稿`)
+    } catch (error) {
+      setNotice('error', error.message)
+    } finally {
+      loading.rollbackSitePage = false
+    }
+  }
+
   onMounted(() => {
     window.addEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired)
     restoreSession()
   })
 
   watch(
-    () => [route.name, route.params.id, token.value],
-    async ([routeName, nextId, nextToken]) => {
+    () => [route.name, route.params.id, route.params.pageKey, token.value],
+    async ([routeName, nextId, nextPageKey, nextToken]) => {
       if (routeName === 'user-edit' && nextId && nextToken) {
         await loadUserDetail(nextId)
       }
       if (routeName === 'site-workspace' && nextId && nextToken) {
         await loadSiteWorkspace(nextId)
+      }
+      if (routeName === 'site-page-editor' && nextId && nextPageKey && nextToken) {
+        await loadSitePageEditor(nextId, nextPageKey)
       }
       if (routeName === 'site-provision' && nextToken) {
         await loadSiteTemplates()
@@ -824,6 +1003,7 @@ export function useConsoleApp(route, router) {
     loadPosts,
     loadPublishRecords,
     loadSites,
+    loadSitePageEditor,
     loadSiteWorkspace,
     loadSiteTemplates,
     loadUsers,
@@ -835,8 +1015,12 @@ export function useConsoleApp(route, router) {
     navigateTab,
     notice,
     pagePresentation,
+    previewSitePage,
+    publishSitePage,
     ready,
     refreshing,
+    rollbackSitePageVersion,
+    saveSitePageDraft,
     secondaryMenus,
     submitChangePassword,
     submitCreateUser,

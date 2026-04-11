@@ -127,6 +127,40 @@ CREATE TABLE IF NOT EXISTS theme_config (
                       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Page
+DROP TABLE IF EXISTS page;
+CREATE TABLE IF NOT EXISTS page (
+                      id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                      tenant_id BIGINT NOT NULL,
+                      site_id BIGINT NOT NULL,
+                      page_key VARCHAR(40) NOT NULL,
+                      page_name VARCHAR(120) NOT NULL,
+                      page_type VARCHAR(20) NOT NULL,
+                      status VARCHAR(20) NOT NULL,
+                      current_version_id BIGINT,
+                      published_version_id BIGINT,
+                      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Page Layout Version
+DROP TABLE IF EXISTS page_layout_version;
+CREATE TABLE IF NOT EXISTS page_layout_version (
+                      id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                      tenant_id BIGINT NOT NULL,
+                      site_id BIGINT NOT NULL,
+                      page_id BIGINT NOT NULL,
+                      version_no INT NOT NULL,
+                      version_status VARCHAR(20) NOT NULL,
+                      schema_version VARCHAR(20) NOT NULL,
+                      layout_json TEXT,
+                      compiled_runtime_json TEXT,
+                      version_note VARCHAR(255),
+                      created_by VARCHAR(100),
+                      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                      published_at DATETIME
+);
+
 -- Category
 DROP TABLE IF EXISTS category;
 CREATE TABLE IF NOT EXISTS category (
@@ -137,6 +171,159 @@ CREATE TABLE IF NOT EXISTS category (
                       status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
                       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Product
+DROP TABLE IF EXISTS product;
+CREATE TABLE IF NOT EXISTS product (
+                      id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                      tenant_id BIGINT NOT NULL,
+                      sku VARCHAR(64) NOT NULL,
+                      title VARCHAR(160) NOT NULL,
+                      category_id BIGINT NOT NULL,
+                      cover_image VARCHAR(255),
+                      gallery_json TEXT,
+                      description_html TEXT,
+                      sizes_json TEXT,
+                      price DECIMAL(10,2) NOT NULL,
+                      compare_at_price DECIMAL(10,2),
+                      status VARCHAR(20) NOT NULL DEFAULT 'DRAFT',
+                      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Site Product Publish
+DROP TABLE IF EXISTS site_product_publish;
+CREATE TABLE IF NOT EXISTS site_product_publish (
+                      id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                      tenant_id BIGINT NOT NULL,
+                      site_id BIGINT NOT NULL,
+                      product_id BIGINT NOT NULL,
+                      publish_status VARCHAR(20) NOT NULL DEFAULT 'PUBLISHED',
+                      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Orders
+DROP TABLE IF EXISTS orders;
+CREATE TABLE IF NOT EXISTS orders (
+                      id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                      tenant_id BIGINT NOT NULL,
+                      site_id BIGINT NOT NULL,
+                      order_no VARCHAR(40) NOT NULL,
+                      customer_first_name VARCHAR(80) NOT NULL,
+                      customer_last_name VARCHAR(80) NOT NULL,
+                      customer_email VARCHAR(120) NOT NULL,
+                      customer_phone VARCHAR(40),
+                      country VARCHAR(10) NOT NULL,
+                      state VARCHAR(80),
+                      city VARCHAR(80) NOT NULL,
+                      address_line1 VARCHAR(255) NOT NULL,
+                      postal_code VARCHAR(40) NOT NULL,
+                      currency VARCHAR(10) NOT NULL,
+                      subtotal_amount DECIMAL(10,2) NOT NULL,
+                      shipping_amount DECIMAL(10,2) NOT NULL,
+                      tax_amount DECIMAL(10,2) NOT NULL,
+                      total_amount DECIMAL(10,2) NOT NULL,
+                      order_status VARCHAR(20) NOT NULL,
+                      payment_status VARCHAR(20) NOT NULL,
+                      shipping_status VARCHAR(20) NOT NULL,
+                      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Order Item
+DROP TABLE IF EXISTS order_item;
+CREATE TABLE IF NOT EXISTS order_item (
+                      id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                      tenant_id BIGINT NOT NULL,
+                      order_id BIGINT NOT NULL,
+                      product_id BIGINT NOT NULL,
+                      sku VARCHAR(64) NOT NULL,
+                      product_title VARCHAR(160) NOT NULL,
+                      size_value VARCHAR(40),
+                      quantity INT NOT NULL,
+                      unit_price DECIMAL(10,2) NOT NULL,
+                      line_total DECIMAL(10,2) NOT NULL
+);
+
+-- Payment Record
+DROP TABLE IF EXISTS payment_record;
+CREATE TABLE IF NOT EXISTS payment_record (
+                      id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                      tenant_id BIGINT NOT NULL,
+                      order_id BIGINT NOT NULL,
+                      provider_code VARCHAR(30) NOT NULL,
+                      payment_no VARCHAR(40) NOT NULL,
+                      amount DECIMAL(10,2) NOT NULL,
+                      currency VARCHAR(10) NOT NULL,
+                      status VARCHAR(20) NOT NULL,
+                      callback_payload TEXT,
+                      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Email Record
+DROP TABLE IF EXISTS email_record;
+CREATE TABLE IF NOT EXISTS email_record (
+                      id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                      tenant_id BIGINT NOT NULL,
+                      order_id BIGINT NOT NULL,
+                      template_code VARCHAR(40) NOT NULL,
+                      recipient VARCHAR(120) NOT NULL,
+                      status VARCHAR(20) NOT NULL,
+                      response_message TEXT,
+                      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Shipment Record
+DROP TABLE IF EXISTS shipment_record;
+CREATE TABLE IF NOT EXISTS shipment_record (
+                      id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                      tenant_id BIGINT NOT NULL,
+                      order_id BIGINT NOT NULL,
+                      procurement_status VARCHAR(20) NOT NULL,
+                      shipment_status VARCHAR(20) NOT NULL,
+                      tracking_no VARCHAR(80),
+                      carrier VARCHAR(80),
+                      failure_reason TEXT,
+                      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Cloak Rule
+DROP TABLE IF EXISTS cloak_rule;
+CREATE TABLE IF NOT EXISTS cloak_rule (
+                      id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                      tenant_id BIGINT NOT NULL,
+                      site_id BIGINT NOT NULL,
+                      rule_name VARCHAR(128) NOT NULL,
+                      priority INT NOT NULL DEFAULT 100,
+                      status VARCHAR(20) NOT NULL,
+                      match_mode VARCHAR(20) NOT NULL,
+                      traffic_percentage INT NOT NULL DEFAULT 100,
+                      condition_json TEXT NOT NULL,
+                      result_type VARCHAR(30) NOT NULL,
+                      result_json TEXT NOT NULL,
+                      version_no INT NOT NULL DEFAULT 1,
+                      created_by VARCHAR(100) NOT NULL,
+                      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Cloak Hit Log
+DROP TABLE IF EXISTS cloak_hit_log;
+CREATE TABLE IF NOT EXISTS cloak_hit_log (
+                      id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                      tenant_id BIGINT NOT NULL,
+                      site_id BIGINT NOT NULL,
+                      rule_id BIGINT,
+                      decision VARCHAR(30) NOT NULL,
+                      request_id VARCHAR(64) NOT NULL,
+                      request_summary_json TEXT NOT NULL,
+                      matched_condition_json TEXT,
+                      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Post
@@ -245,8 +432,33 @@ CREATE UNIQUE INDEX uk_site_domain_domain ON site_domain(domain);
 CREATE UNIQUE INDEX uk_site_homepage_config_site ON site_homepage_config(tenant_id, site_id);
 CREATE UNIQUE INDEX uk_site_setting_site ON site_setting(tenant_id, site_id);
 CREATE UNIQUE INDEX uk_theme_config_site_scope ON theme_config(tenant_id, site_id, config_scope);
+CREATE UNIQUE INDEX uk_page_tenant_site_key ON page(tenant_id, site_id, page_key);
+CREATE INDEX idx_page_tenant_site_status ON page(tenant_id, site_id, status);
+CREATE UNIQUE INDEX uk_page_layout_version_tenant_page_no ON page_layout_version(tenant_id, page_id, version_no);
+CREATE INDEX idx_page_layout_version_tenant_site_page ON page_layout_version(tenant_id, site_id, page_id);
 CREATE UNIQUE INDEX uk_category_tenant_slug ON category(tenant_id, slug);
 CREATE INDEX idx_category_tenant_status ON category(tenant_id, status);
+CREATE UNIQUE INDEX uk_product_tenant_sku ON product(tenant_id, sku);
+CREATE INDEX idx_product_tenant_category_status ON product(tenant_id, category_id, status);
+CREATE UNIQUE INDEX uk_site_product_publish_tenant_site_product ON site_product_publish(tenant_id, site_id, product_id);
+CREATE INDEX idx_site_product_publish_tenant_product_status ON site_product_publish(tenant_id, product_id, publish_status);
+CREATE INDEX idx_site_product_publish_tenant_site_status ON site_product_publish(tenant_id, site_id, publish_status);
+CREATE UNIQUE INDEX uk_orders_order_no ON orders(order_no);
+CREATE INDEX idx_orders_tenant_site_created ON orders(tenant_id, site_id, created_at);
+CREATE INDEX idx_orders_tenant_status ON orders(tenant_id, order_status, payment_status, shipping_status);
+CREATE INDEX idx_order_item_tenant_order ON order_item(tenant_id, order_id);
+CREATE UNIQUE INDEX uk_payment_record_payment_no ON payment_record(payment_no);
+CREATE INDEX idx_payment_record_tenant_order ON payment_record(tenant_id, order_id, created_at);
+CREATE INDEX idx_payment_record_tenant_status ON payment_record(tenant_id, status, updated_at);
+CREATE INDEX idx_email_record_tenant_order ON email_record(tenant_id, order_id, created_at);
+CREATE INDEX idx_email_record_tenant_status ON email_record(tenant_id, status, updated_at);
+CREATE UNIQUE INDEX uk_shipment_record_tenant_order ON shipment_record(tenant_id, order_id);
+CREATE INDEX idx_shipment_record_tenant_tracking ON shipment_record(tenant_id, tracking_no);
+CREATE INDEX idx_shipment_record_tenant_status ON shipment_record(tenant_id, procurement_status, shipment_status, updated_at);
+CREATE UNIQUE INDEX uk_cloak_rule_tenant_site_name ON cloak_rule(tenant_id, site_id, rule_name);
+CREATE INDEX idx_cloak_rule_tenant_site_status_priority ON cloak_rule(tenant_id, site_id, status, priority);
+CREATE INDEX idx_cloak_hit_log_tenant_site_created ON cloak_hit_log(tenant_id, site_id, created_at);
+CREATE INDEX idx_cloak_hit_log_tenant_rule_created ON cloak_hit_log(tenant_id, rule_id, created_at);
 
 CREATE INDEX idx_post_tenant_id ON post(tenant_id);
 CREATE INDEX idx_post_tenant_id_id ON post(tenant_id, id);

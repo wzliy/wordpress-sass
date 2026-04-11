@@ -54,6 +54,29 @@ public class MybatisSiteRepository implements SiteRepository {
         siteMapper.updateProvisionResult(toDataObject(site));
     }
 
+    @Override
+    public void updateSubsiteSettings(Long tenantId,
+                                      Long siteId,
+                                      String name,
+                                      String countryCode,
+                                      String languageCode,
+                                      String currencyCode,
+                                      String logoUrl,
+                                      String bannerTitle,
+                                      String bannerSubtitle) {
+        siteMapper.updateSubsiteSettings(
+                tenantId,
+                siteId,
+                name,
+                countryCode,
+                languageCode,
+                currencyCode,
+                logoUrl,
+                bannerTitle,
+                bannerSubtitle
+        );
+    }
+
     private SiteDO toDataObject(Site site) {
         SiteDO siteDO = new SiteDO();
         siteDO.setId(site.getId());

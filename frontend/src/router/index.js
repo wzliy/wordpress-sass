@@ -6,6 +6,7 @@ import PostListPage from '../pages/post/PostListPage.vue'
 import PublishCreatePage from '../pages/publish/PublishCreatePage.vue'
 import PublishHistoryPage from '../pages/publish/PublishHistoryPage.vue'
 import SiteListPage from '../pages/site/SiteListPage.vue'
+import SitePageEditorPage from '../pages/site/SitePageEditorPage.vue'
 import SiteProvisionPage from '../pages/site/SiteProvisionPage.vue'
 import SiteRegisterPage from '../pages/site/SiteRegisterPage.vue'
 import SiteWorkspacePage from '../pages/site/SiteWorkspacePage.vue'
@@ -71,6 +72,16 @@ const router = createRouter({
       path: '/sites/:id/workspace',
       name: 'site-workspace',
       component: SiteWorkspacePage,
+      meta: {
+        layout: 'admin',
+        module: 'site',
+        activePath: '/sites/list',
+      },
+    },
+    {
+      path: '/sites/:id/pages/:pageKey/editor',
+      name: 'site-page-editor',
+      component: SitePageEditorPage,
       meta: {
         layout: 'admin',
         module: 'site',

@@ -6,6 +6,8 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Options;
 import org.apache.ibatis.annotations.Select;
 
+import java.util.Optional;
+
 @Mapper
 public interface TenantMapper {
 
@@ -18,4 +20,13 @@ public interface TenantMapper {
 
     @Select("SELECT COUNT(1) FROM tenant")
     long countAll();
+
+    @Select("""
+            SELECT id, name
+            FROM tenant
+            WHERE name = #{name}
+            ORDER BY id ASC
+            LIMIT 1
+            """)
+    Optional<TenantDO> selectByName(String name);
 }

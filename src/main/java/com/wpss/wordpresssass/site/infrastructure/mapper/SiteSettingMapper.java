@@ -5,6 +5,9 @@ import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
+
+import java.util.Optional;
 
 @Mapper
 public interface SiteSettingMapper {
@@ -21,4 +24,21 @@ public interface SiteSettingMapper {
             WHERE tenant_id = #{tenantId} AND site_id = #{siteId}
             """)
     int countBySite(@Param("tenantId") Long tenantId, @Param("siteId") Long siteId);
+
+    @Select("""
+            SELECT tenant_id, site_id, page_skeleton_json, default_config_json, created_at, updated_at
+            FROM site_setting
+            WHERE tenant_id = #{tenantId} AND site_id = #{siteId}
+            LIMIT 1
+            """)
+    Optional<SiteSettingDO> selectBySite(@Param("tenantId") Long tenantId, @Param("siteId") Long siteId);
+
+    @Update("""
+            UPDATE site_setting
+            SET default_config_json = #{defaultConfigJson}, updated_at = CURRENT_TIMESTAMP
+            WHERE tenant_id = #{tenantId} AND site_id = #{siteId}
+            """)
+    int updateDefaultConfig(@Param("tenantId") Long tenantId,
+                            @Param("siteId") Long siteId,
+                            @Param("defaultConfigJson") String defaultConfigJson);
 }

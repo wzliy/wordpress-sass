@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${page.title} + ' | ' + ${page.siteName}">Product</title>
+    <style>
+        :root {
+            color-scheme: light;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            background:
+                    radial-gradient(circle at top right, color-mix(in srgb, var(--theme-color) 16%, #f6f7fb) 0%, #f6f7fb 34%, #eef1f6 100%);
+            color: #172033;
+        }
+
+        .page {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 32px 20px 64px;
+        }
+
+        .breadcrumb {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            color: #5c677a;
+            font-size: 0.92rem;
+        }
+
+        .breadcrumb a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .product-shell {
+            display: grid;
+            gap: 22px;
+            grid-template-columns: minmax(0, 1.12fr) minmax(320px, 0.88fr);
+            align-items: start;
+        }
+
+        .gallery-panel,
+        .summary-panel,
+        .description-panel {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(23, 32, 51, 0.08);
+            border-radius: 28px;
+            box-shadow: 0 22px 70px rgba(23, 32, 51, 0.08);
+        }
+
+        .gallery-panel {
+            padding: 20px;
+        }
+
+        .hero-image {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
+            border-radius: 24px;
+            background: linear-gradient(135deg, color-mix(in srgb, var(--theme-color) 24%, #f8fafc), #e2e8f0);
+        }
+
+        .gallery-grid {
+            margin-top: 16px;
+            display: grid;
+            gap: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        }
+
+        .gallery-thumb {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            border-radius: 18px;
+            object-fit: cover;
+            background: #edf1f7;
+        }
+
+        .summary-panel {
+            padding: 28px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: color-mix(in srgb, var(--theme-color) 16%, white);
+            color: var(--theme-color);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 16px 0 10px;
+            font-size: clamp(2rem, 4vw, 3.3rem);
+            line-height: 1.04;
+        }
+
+        .sku {
+            margin: 0;
+            color: #637086;
+            font-size: 0.95rem;
+        }
+
+        .price-row {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            margin: 22px 0 18px;
+        }
+
+        .price {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #101827;
+        }
+
+        .compare-price {
+            color: #7b8798;
+            font-size: 1.1rem;
+            text-decoration: line-through;
+        }
+
+        .size-block {
+            margin: 22px 0;
+        }
+
+        .size-block h2,
+        .description-panel h2 {
+            margin: 0 0 12px;
+            font-size: 1rem;
+        }
+
+        .size-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .size-chip {
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: #edf1f7;
+            color: #334155;
+            font-weight: 700;
+            font-size: 0.92rem;
+        }
+
+        .summary-note {
+            margin: 0;
+            color: #58657a;
+            line-height: 1.7;
+        }
+
+        .description-panel {
+            margin-top: 22px;
+            padding: 28px;
+        }
+
+        .description-body {
+            color: #364254;
+            line-height: 1.8;
+        }
+
+        .description-body p:first-child {
+            margin-top: 0;
+        }
+
+        .cta-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .cta-link,
+        .cta-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 160px;
+            border: none;
+            padding: 14px 18px;
+            border-radius: 16px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+        }
+
+        .cta-link.primary,
+        .cta-button.primary {
+            color: white;
+            background: var(--theme-color);
+        }
+
+        .cta-link.secondary {
+            color: #425066;
+            background: #edf1f7;
+        }
+
+        @media (max-width: 900px) {
+            .product-shell {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body th:style="'--theme-color:' + ${page.themeColor}">
+<main class="page">
+    <nav class="breadcrumb">
+        <a href="/">Home</a>
+        <span>/</span>
+        <a th:href="${page.categorySlug != null} ? @{/category/{slug}(slug=${page.categorySlug})} : @{/category/all}"
+           th:text="${page.categoryName == null ? 'Catalog' : page.categoryName}">
+            Catalog
+        </a>
+        <span>/</span>
+        <span th:text="${page.title}">Product</span>
+    </nav>
+
+    <section class="product-shell">
+        <article class="gallery-panel">
+            <img th:if="${page.coverImage != null}" class="hero-image" th:src="${page.coverImage}" th:alt="${page.title}">
+            <div th:if="${page.coverImage == null}" class="hero-image"></div>
+            <div th:if="${page.galleryImages.size() > 1}" class="gallery-grid">
+                <img th:each="imageUrl, iterStat : ${page.galleryImages}"
+                     th:if="${iterStat.index > 0}"
+                     class="gallery-thumb"
+                     th:src="${imageUrl}"
+                     th:alt="${page.title} + ' gallery image'">
+            </div>
+        </article>
+
+        <article class="summary-panel">
+            <span class="eyebrow" th:text="${page.siteCode}">site-code</span>
+            <h1 th:text="${page.title}">Product title</h1>
+            <p class="sku" th:text="'SKU: ' + ${page.sku}">SKU</p>
+
+            <div class="price-row">
+                <span class="price" th:text="'$' + ${page.price}">$0.00</span>
+                <span th:if="${page.compareAtPrice != null}" class="compare-price" th:text="'$' + ${page.compareAtPrice}">$0.00</span>
+            </div>
+
+            <section th:if="${!#lists.isEmpty(page.sizes)}" class="size-block">
+                <h2>Available Sizes</h2>
+                <div class="size-chips">
+                    <span th:each="size : ${page.sizes}" class="size-chip" th:text="${size}">M</span>
+                </div>
+            </section>
+
+            <p class="summary-note">
+                This product is currently visible because it is both published to the current site and marked ACTIVE in the central catalog.
+            </p>
+
+            <div class="cta-row">
+                <form method="post" action="/cart/items">
+                    <input type="hidden" name="productId" th:value="${page.productId}">
+                    <input type="hidden" name="quantity" value="1">
+                    <button type="submit" class="cta-button primary">Add to Cart</button>
+                </form>
+                <a class="cta-link secondary"
+                   th:href="${page.categorySlug != null} ? @{/category/{slug}(slug=${page.categorySlug})} : @{/category/all}">
+                    Back to Catalog
+                </a>
+            </div>
+        </article>
+    </section>
+
+    <section class="description-panel">
+        <h2>Product Details</h2>
+        <div th:if="${page.descriptionHtml != null}" class="description-body" th:utext="${page.descriptionHtml}">
+            <p>Product description</p>
+        </div>
+        <div th:if="${page.descriptionHtml == null}" class="description-body">
+            <p>Detailed product content will appear here after catalog copy is configured.</p>
+        </div>
+    </section>
+</main>
+</body>
+</html>

@@ -2,6 +2,7 @@ package com.wpss.wordpresssass.site.application;
 
 import com.wpss.wordpresssass.common.exception.BusinessException;
 import com.wpss.wordpresssass.common.tenant.TenantContext;
+import com.wpss.wordpresssass.page.application.PageBootstrapService;
 import com.wpss.wordpresssass.site.application.command.AddSiteCommand;
 import com.wpss.wordpresssass.site.application.command.ProvisionSiteCommand;
 import com.wpss.wordpresssass.site.application.dto.SiteConnectionResultDto;
@@ -34,6 +35,7 @@ public class SiteApplicationService {
     private final SiteTemplateRepository siteTemplateRepository;
     private final SiteSettingRepository siteSettingRepository;
     private final ThemeConfigRepository themeConfigRepository;
+    private final PageBootstrapService pageBootstrapService;
     private final WpClient wpClient;
     private final SiteProvisioner siteProvisioner;
     private final MultisiteProperties multisiteProperties;
@@ -44,6 +46,7 @@ public class SiteApplicationService {
                                   SiteTemplateRepository siteTemplateRepository,
                                   SiteSettingRepository siteSettingRepository,
                                   ThemeConfigRepository themeConfigRepository,
+                                  PageBootstrapService pageBootstrapService,
                                   WpClient wpClient,
                                   SiteProvisioner siteProvisioner, MultisiteProperties multisiteProperties) {
         this.siteRepository = siteRepository;
@@ -52,6 +55,7 @@ public class SiteApplicationService {
         this.siteTemplateRepository = siteTemplateRepository;
         this.siteSettingRepository = siteSettingRepository;
         this.themeConfigRepository = themeConfigRepository;
+        this.pageBootstrapService = pageBootstrapService;
         this.wpClient = wpClient;
         this.siteProvisioner = siteProvisioner;
         this.multisiteProperties = multisiteProperties;
@@ -74,6 +78,9 @@ public class SiteApplicationService {
         Site savedSite = siteRepository.save(site);
         siteDomainApplicationService.ensurePrimaryDomain(tenantId, savedSite.getId(), savedSite.getDomain());
         siteHomepageConfigRepository.saveDefaultForSite(savedSite, null);
+        siteSettingRepository.saveDefaultForSite(savedSite, null);
+        themeConfigRepository.saveDefaultForSite(savedSite, null);
+        pageBootstrapService.bootstrapDefaultPages(savedSite);
         return SiteDto.from(savedSite);
     }
 
@@ -116,6 +123,7 @@ public class SiteApplicationService {
         siteHomepageConfigRepository.saveDefaultForSite(completedSite, siteTemplate);
         siteSettingRepository.saveDefaultForSite(completedSite, siteTemplate);
         themeConfigRepository.saveDefaultForSite(completedSite, siteTemplate);
+        pageBootstrapService.bootstrapDefaultPages(completedSite);
 
         return new SiteProvisionResultDto(
                 completedSite.getId(),

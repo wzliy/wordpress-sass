@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Options;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
 import java.util.Optional;
 
@@ -33,4 +34,13 @@ public interface SiteHomepageConfigMapper {
             LIMIT 1
             """)
     Optional<SiteHomepageConfigDO> selectBySite(@Param("tenantId") Long tenantId, @Param("siteId") Long siteId);
+
+    @Update("""
+            UPDATE site_homepage_config
+            SET config_json = #{configJson}, updated_at = CURRENT_TIMESTAMP
+            WHERE tenant_id = #{tenantId} AND site_id = #{siteId}
+            """)
+    int updateConfig(@Param("tenantId") Long tenantId,
+                     @Param("siteId") Long siteId,
+                     @Param("configJson") String configJson);
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wpss.wordpresssass.common.exception.BusinessException;
 import com.wpss.wordpresssass.site.domain.Site;
+import com.wpss.wordpresssass.site.domain.SiteSetting;
 import com.wpss.wordpresssass.site.domain.SiteSettingRepository;
 import com.wpss.wordpresssass.site.domain.SiteTemplate;
 import com.wpss.wordpresssass.site.infrastructure.dataobject.SiteSettingDO;
@@ -11,8 +12,10 @@ import com.wpss.wordpresssass.site.infrastructure.mapper.SiteSettingMapper;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Repository
 public class MybatisSiteSettingRepository implements SiteSettingRepository {
@@ -35,15 +38,7 @@ public class MybatisSiteSettingRepository implements SiteSettingRepository {
         siteSettingDO.setTenantId(site.getTenantId());
         siteSettingDO.setSiteId(site.getId());
         siteSettingDO.setPageSkeletonJson(writeJson(defaultPages(siteTemplate)));
-        siteSettingDO.setDefaultConfigJson(writeJson(Map.of(
-                "templateCode", siteTemplate.getCode(),
-                "templateName", siteTemplate.getName(),
-                "countryCode", site.getCountryCode(),
-                "languageCode", site.getLanguageCode(),
-                "currencyCode", site.getCurrencyCode(),
-                "paymentMode", "MANUAL_REVIEW",
-                "trackingMode", "BASIC_PIXEL"
-        )));
+        siteSettingDO.setDefaultConfigJson(writeJson(defaultConfig(site, siteTemplate)));
         siteSettingDO.setCreatedAt(LocalDateTime.now());
         siteSettingDO.setUpdatedAt(LocalDateTime.now());
         siteSettingMapper.insert(siteSettingDO);
@@ -54,20 +49,78 @@ public class MybatisSiteSettingRepository implements SiteSettingRepository {
         return siteSettingMapper.countBySite(tenantId, siteId) > 0;
     }
 
+    @Override
+    public Optional<SiteSetting> findBySite(Long tenantId, Long siteId) {
+        return siteSettingMapper.selectBySite(tenantId, siteId)
+                .map(this::toDomain);
+    }
+
+    @Override
+    public void saveOrUpdateDefaultConfig(Long tenantId, Long siteId, String defaultConfigJson) {
+        Optional<SiteSettingDO> existing = siteSettingMapper.selectBySite(tenantId, siteId);
+        if (existing.isPresent()) {
+            siteSettingMapper.updateDefaultConfig(tenantId, siteId, defaultConfigJson);
+            return;
+        }
+
+        SiteSettingDO siteSettingDO = new SiteSettingDO();
+        siteSettingDO.setTenantId(tenantId);
+        siteSettingDO.setSiteId(siteId);
+        siteSettingDO.setPageSkeletonJson("[]");
+        siteSettingDO.setDefaultConfigJson(defaultConfigJson);
+        siteSettingDO.setCreatedAt(LocalDateTime.now());
+        siteSettingDO.setUpdatedAt(LocalDateTime.now());
+        siteSettingMapper.insert(siteSettingDO);
+    }
+
     private List<Map<String, String>> defaultPages(SiteTemplate siteTemplate) {
-        if ("brand-showcase-global".equals(siteTemplate.getCode())) {
+        if (siteTemplate != null && "brand-showcase-global".equals(siteTemplate.getCode())) {
             return List.of(
                     Map.of("key", "home", "name", "品牌首页", "type", "HOME"),
+                    Map.of("key", "product", "name", "商品详情页", "type", "PRODUCT"),
+                    Map.of("key", "checkout", "name", "结账页", "type", "CHECKOUT"),
+                    Map.of("key", "success", "name", "支付成功页", "type", "SUCCESS"),
                     Map.of("key", "about", "name", "品牌故事", "type", "CONTENT"),
                     Map.of("key", "contact", "name", "联系页面", "type", "CONTACT")
             );
         }
         return List.of(
                 Map.of("key", "home", "name", "默认首页", "type", "HOME"),
-                Map.of("key", "landing", "name", "营销落地页", "type", "LANDING"),
+                Map.of("key", "product", "name", "商品详情页", "type", "PRODUCT"),
                 Map.of("key", "checkout", "name", "结账页", "type", "CHECKOUT"),
                 Map.of("key", "success", "name", "支付成功页", "type", "SUCCESS")
         );
+    }
+
+    private SiteSetting toDomain(SiteSettingDO siteSettingDO) {
+        return new SiteSetting(
+                siteSettingDO.getTenantId(),
+                siteSettingDO.getSiteId(),
+                siteSettingDO.getPageSkeletonJson(),
+                siteSettingDO.getDefaultConfigJson(),
+                siteSettingDO.getCreatedAt(),
+                siteSettingDO.getUpdatedAt()
+        );
+    }
+
+    private Map<String, Object> defaultConfig(Site site, SiteTemplate siteTemplate) {
+        Map<String, Object> config = new LinkedHashMap<>();
+        config.put("templateCode", resolveTemplateCode(siteTemplate));
+        config.put("templateName", resolveTemplateName(siteTemplate));
+        config.put("countryCode", site.getCountryCode());
+        config.put("languageCode", site.getLanguageCode());
+        config.put("currencyCode", site.getCurrencyCode());
+        config.put("paymentMode", "MANUAL_REVIEW");
+        config.put("trackingMode", "BASIC_PIXEL");
+        return config;
+    }
+
+    private String resolveTemplateCode(SiteTemplate siteTemplate) {
+        return siteTemplate == null ? "manual-default" : siteTemplate.getCode();
+    }
+
+    private String resolveTemplateName(SiteTemplate siteTemplate) {
+        return siteTemplate == null ? "Manual Default" : siteTemplate.getName();
     }
 
     private String writeJson(Object value) {

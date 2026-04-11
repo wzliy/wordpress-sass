@@ -46,6 +46,14 @@ public class MybatisThemeConfigRepository implements ThemeConfigRepository {
     }
 
     private Map<String, String> defaultTokens(SiteTemplate siteTemplate) {
+        if (siteTemplate == null) {
+            return Map.of(
+                    "primary", "#2563EB",
+                    "accent", "#06B6D4",
+                    "surface", "#F8FAFC",
+                    "text", "#0F172A"
+            );
+        }
         return switch (siteTemplate.getCode()) {
             case "beauty-flash-sale" -> Map.of(
                     "primary", "#BE185D",

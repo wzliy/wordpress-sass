@@ -111,6 +111,7 @@
 | `admin` | 平台后台聚合接口、管理侧应用服务 |
 | `site` | 站点基础信息、站点设置、启停、站点状态 |
 | `domain` | 域名绑定、主域名、域名状态、Host 解析 |
+| `page` | 页面主档、页面版本、装修器查询、预览/发布编译 |
 | `storefront` | 前台首页、分类页、商品页、购物车、结账、成功页 |
 | `catalog` | 分类、商品、站点发布关系 |
 | `order` | 购物车快照、订单、订单项、订单状态 |
@@ -119,6 +120,7 @@
 | `subsite` | 子站管理接口，只暴露站点范围内能力 |
 | `shipping` | 采购/发货/物流记录与查询 |
 | `report` | 平台汇总报表、按站点统计 |
+| `cloak` | 斗篷规则、仿真命中、命中日志、后续请求判定扩展 |
 | `legacy` | 当前仓库遗留的 WordPress 发文与兼容逻辑 |
 | `integration.wordpress` | Multisite 初始化等可选适配器 |
 
@@ -212,6 +214,36 @@
 - 站点启停应同步影响域名解析与前台可访问性
 - 订单、支付、发货记录必须可追溯
 - 店铺首页配置与站点基础信息分离，避免把前台结构塞进 `site` 大表
+
+### 8.7 下一阶段页面装修扩展
+
+在 `P0` 到 `P11` 主线闭环完成后，下一阶段引入：
+- `page`
+- `page_layout_version`
+
+扩展原则：
+- 页面编辑模型与 storefront 运行时模型分离
+- 发布时通过编译器把 `HOME` 页面同步到 `site_homepage_config`
+- `theme_config` 继续作为站点级主题 token 来源
+- 当前已开放 `HOME / PRODUCT / CHECKOUT / SUCCESS` 的编辑器壳、版本历史和回滚能力
+
+详细设计见：
+- [page-editor-design.md](/Users/wangzhulin/IdeaProjects/wordpress-sass/docs/page-editor-design.md)
+
+### 8.8 下一阶段斗篷引擎扩展
+
+在页面装修器闭环完成后，下一阶段引入：
+- `cloak_rule`
+- `cloak_hit_log`
+- `cloak` 模块
+
+扩展原则：
+- 先落规则管理、仿真和日志，不直接上真实线上斗篷
+- 请求路径命中判定保持纯内存/纯本地计算，不依赖外部服务
+- 规则变更接入 `audit_log`，后续配置下发再接 `async_task`
+
+详细设计见：
+- [cloak-engine-design.md](/Users/wangzhulin/IdeaProjects/wordpress-sass/docs/cloak-engine-design.md)
 
 ---
 

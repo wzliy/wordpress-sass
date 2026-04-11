@@ -68,4 +68,25 @@ public interface SiteMapper {
             WHERE id = #{id} AND tenant_id = #{tenantId}
             """)
     int updateProvisionResult(SiteDO siteDO);
+
+    @Update("""
+            UPDATE site
+            SET name = #{name},
+                country_code = #{countryCode},
+                language_code = #{languageCode},
+                currency_code = #{currencyCode},
+                logo_url = #{logoUrl},
+                banner_title = #{bannerTitle},
+                banner_subtitle = #{bannerSubtitle}
+            WHERE tenant_id = #{tenantId} AND id = #{siteId}
+            """)
+    int updateSubsiteSettings(@Param("tenantId") Long tenantId,
+                              @Param("siteId") Long siteId,
+                              @Param("name") String name,
+                              @Param("countryCode") String countryCode,
+                              @Param("languageCode") String languageCode,
+                              @Param("currencyCode") String currencyCode,
+                              @Param("logoUrl") String logoUrl,
+                              @Param("bannerTitle") String bannerTitle,
+                              @Param("bannerSubtitle") String bannerSubtitle);
 }

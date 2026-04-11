@@ -1,6 +1,9 @@
 package com.wpss.wordpresssass.site;
 
 import com.wpss.wordpresssass.AuthTestSupport;
+import com.wpss.wordpresssass.page.domain.Page;
+import com.wpss.wordpresssass.page.domain.PageLayoutVersionRepository;
+import com.wpss.wordpresssass.page.domain.PageRepository;
 import com.wpss.wordpresssass.site.domain.SiteHomepageConfigRepository;
 import com.wpss.wordpresssass.site.domain.Site;
 import com.wpss.wordpresssass.site.infrastructure.wordpress.WpClient;
@@ -13,6 +16,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -37,6 +42,12 @@ class SiteControllerTest extends AuthTestSupport {
 
     @Autowired
     private SiteHomepageConfigRepository siteHomepageConfigRepository;
+
+    @Autowired
+    private PageRepository pageRepository;
+
+    @Autowired
+    private PageLayoutVersionRepository pageLayoutVersionRepository;
 
     @Override
     protected MockMvc mockMvc() {
@@ -96,6 +107,22 @@ class SiteControllerTest extends AuthTestSupport {
         var homepageConfig = objectMapper.readTree(homepageConfigJson);
         assertThat(homepageConfig.path("bannerTitle").asText()).isEqualTo("My Blog");
         assertThat(homepageConfig.path("menuItems").size()).isEqualTo(3);
+
+        Page homePage = pageRepository.findBySiteAndPageKey(session.tenantId(), siteId, Page.HOME_PAGE_KEY)
+                .orElseThrow();
+        assertThat(homePage.getPublishedVersionId()).isNotNull();
+        assertThat(pageRepository.findBySite(session.tenantId(), siteId))
+                .extracting(Page::getPageKey)
+                .containsExactly(
+                        Page.HOME_PAGE_KEY,
+                        Page.PRODUCT_PAGE_KEY,
+                        Page.CHECKOUT_PAGE_KEY,
+                        Page.SUCCESS_PAGE_KEY
+                );
+
+        var versions = pageLayoutVersionRepository.findByPage(session.tenantId(), siteId, homePage.getId());
+        assertThat(versions).hasSize(1);
+        assertThat(objectMapper.readTree(versions.get(0).getLayoutJson()).path("sections")).hasSize(3);
     }
 
     @Test
@@ -227,6 +254,19 @@ class SiteControllerTest extends AuthTestSupport {
         var homepageConfig = objectMapper.readTree(homepageConfigJson);
         assertThat(homepageConfig.path("templateCode").asText()).isEqualTo("starter-one-product");
         assertThat(homepageConfig.path("themeColor").asText()).isEqualTo("#2563EB");
+
+        Page homePage = pageRepository.findBySiteAndPageKey(session.tenantId(), siteId, Page.HOME_PAGE_KEY)
+                .orElseThrow();
+        assertThat(homePage.getPublishedVersionId()).isNotNull();
+        assertThat(pageLayoutVersionRepository.findByPage(session.tenantId(), siteId, homePage.getId())).hasSize(1);
+        assertThat(pageRepository.findBySite(session.tenantId(), siteId))
+                .extracting(Page::getPageKey)
+                .containsExactly(
+                        Page.HOME_PAGE_KEY,
+                        Page.PRODUCT_PAGE_KEY,
+                        Page.CHECKOUT_PAGE_KEY,
+                        Page.SUCCESS_PAGE_KEY
+                );
     }
 
     @Test
@@ -297,10 +337,11 @@ class SiteControllerTest extends AuthTestSupport {
                 .andExpect(jsonPath("$.data.workspaceStatus").value("ACTION_REQUIRED"))
                 .andExpect(jsonPath("$.data.profile.name").value("Workspace Site"))
                 .andExpect(jsonPath("$.data.profile.status").value("ACTIVE"))
-                .andExpect(jsonPath("$.data.readiness.level").value("NOT_READY"))
+                .andExpect(jsonPath("$.data.readiness.level").value("BASIC_READY"))
                 .andExpect(jsonPath("$.data.moduleSummaries.length()").value(5))
                 .andExpect(jsonPath("$.data.pendingTasks.length()").value(0))
-                .andExpect(jsonPath("$.data.quickActions.length()").value(4));
+                .andExpect(jsonPath("$.data.quickActions.length()").value(5))
+                .andExpect(jsonPath("$.data.quickActions[2].label").value("首页装修"));
     }
 
     @Test

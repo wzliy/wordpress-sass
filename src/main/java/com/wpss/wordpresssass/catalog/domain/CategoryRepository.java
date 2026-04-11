@@ -11,6 +11,8 @@ public interface CategoryRepository {
 
     Optional<Category> findByIdAndTenantId(Long id, Long tenantId);
 
+    Optional<Category> findBySlugAndTenantId(Long tenantId, String slug);
+
     boolean existsBySlug(Long tenantId, String slug);
 
     void updateStatus(Long id, Long tenantId, CategoryStatus status);

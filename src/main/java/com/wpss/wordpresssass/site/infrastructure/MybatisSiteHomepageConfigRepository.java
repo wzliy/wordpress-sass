@@ -46,6 +46,24 @@ public class MybatisSiteHomepageConfigRepository implements SiteHomepageConfigRe
     }
 
     @Override
+    public void saveOrUpdateConfig(Long tenantId, Long siteId, String configJson) {
+        Optional<SiteHomepageConfigDO> existing = siteHomepageConfigMapper.selectBySite(tenantId, siteId);
+        if (existing.isPresent()) {
+            siteHomepageConfigMapper.updateConfig(tenantId, siteId, configJson);
+            return;
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        SiteHomepageConfigDO siteHomepageConfigDO = new SiteHomepageConfigDO();
+        siteHomepageConfigDO.setTenantId(tenantId);
+        siteHomepageConfigDO.setSiteId(siteId);
+        siteHomepageConfigDO.setConfigJson(configJson);
+        siteHomepageConfigDO.setCreatedAt(now);
+        siteHomepageConfigDO.setUpdatedAt(now);
+        siteHomepageConfigMapper.insert(siteHomepageConfigDO);
+    }
+
+    @Override
     public boolean existsBySite(Long tenantId, Long siteId) {
         return siteHomepageConfigMapper.countBySite(tenantId, siteId) > 0;
     }

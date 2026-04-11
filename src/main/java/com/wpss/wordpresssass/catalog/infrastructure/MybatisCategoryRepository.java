@@ -41,6 +41,12 @@ public class MybatisCategoryRepository implements CategoryRepository {
     }
 
     @Override
+    public Optional<Category> findBySlugAndTenantId(Long tenantId, String slug) {
+        return categoryMapper.selectBySlugAndTenantId(tenantId, slug)
+                .map(this::toDomain);
+    }
+
+    @Override
     public boolean existsBySlug(Long tenantId, String slug) {
         return categoryMapper.countBySlug(tenantId, slug) > 0;
     }

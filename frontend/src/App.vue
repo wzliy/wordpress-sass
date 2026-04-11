@@ -25,8 +25,12 @@ const {
   notice,
   pagePresentation,
   openUserEditor,
+  previewSitePage,
+  publishSitePage,
   ready,
   refreshing,
+  rollbackSitePageVersion,
+  saveSitePageDraft,
   secondaryMenus,
   submitChangePassword,
   submitCreateUser,
@@ -116,7 +120,11 @@ function closeSidebar() {
             @enable-user="handleEnableUser"
             @test-site="handleTestConnection"
             @provision-site="submitProvision"
+            @publish-page="publishSitePage"
+            @rollback-page-version="rollbackSitePageVersion"
             @update-user="submitUpdateUser"
+            @preview-page="previewSitePage"
+            @save-page-draft="saveSitePageDraft"
           />
         </main>
       </div>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Mock Payment ' + ${page.paymentNo} + ' | ' + ${page.siteName}">Mock Payment</title>
+    <style>
+        :root {
+            color-scheme: light;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            background: radial-gradient(circle at top, color-mix(in srgb, var(--theme-color) 22%, #f8fafc) 0%, #f8fafc 36%, #e8eef6 100%);
+            color: #172033;
+        }
+
+        .page {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 48px 20px 72px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.94);
+            border: 1px solid rgba(23, 32, 51, 0.08);
+            border-radius: 32px;
+            box-shadow: 0 26px 80px rgba(23, 32, 51, 0.08);
+            padding: 32px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: color-mix(in srgb, var(--theme-color) 16%, white);
+            color: var(--theme-color);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 18px 0 10px;
+            font-size: clamp(2rem, 4vw, 2.7rem);
+            line-height: 1.05;
+        }
+
+        .subtitle {
+            margin: 0;
+            color: #5a667b;
+            line-height: 1.7;
+        }
+
+        .summary {
+            display: grid;
+            gap: 14px;
+            margin-top: 28px;
+            padding: 20px;
+            border-radius: 24px;
+            background: #f6f9fc;
+            border: 1px solid rgba(23, 32, 51, 0.06);
+        }
+
+        .summary-line {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            color: #526076;
+        }
+
+        .summary-line strong {
+            color: #0f1728;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .status-badge.pending {
+            color: #9a6700;
+            background: #fff6dd;
+        }
+
+        .status-badge.succeeded {
+            color: #166534;
+            background: #dcfce7;
+        }
+
+        .cta-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 28px;
+        }
+
+        .cta-row form {
+            margin: 0;
+        }
+
+        .cta {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 170px;
+            border: none;
+            border-radius: 14px;
+            padding: 12px 16px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+        }
+
+        .cta.primary {
+            color: white;
+            background: var(--theme-color);
+        }
+
+        .cta.secondary {
+            color: #425066;
+            background: #edf1f7;
+        }
+    </style>
+</head>
+<body th:style="'--theme-color:' + ${page.themeColor}">
+<main class="page">
+    <section class="card">
+        <span class="eyebrow" th:text="${page.siteCode}">site-code</span>
+        <h1>Mock Payment</h1>
+        <p th:if="${page.paymentStatus == 'PENDING'}" class="subtitle">
+            This is the demo provider screen for order <strong th:text="${page.orderNo}">ORD0001</strong>. Submit the callback to mark the order as paid.
+        </p>
+        <p th:if="${page.paymentStatus == 'SUCCEEDED'}" class="subtitle">
+            This payment attempt has already succeeded. You can return to the order success page at any time.
+        </p>
+
+        <section class="summary">
+            <div class="summary-line">
+                <span>Payment No</span>
+                <strong th:text="${page.paymentNo}">PAY0001</strong>
+            </div>
+            <div class="summary-line">
+                <span>Order No</span>
+                <strong th:text="${page.orderNo}">ORD0001</strong>
+            </div>
+            <div class="summary-line">
+                <span>Amount</span>
+                <strong th:text="'$' + ${page.amount} + ' ' + ${page.currency}">$0.00 USD</strong>
+            </div>
+            <div class="summary-line">
+                <span>Status</span>
+                <strong>
+                    <span th:if="${page.paymentStatus == 'PENDING'}" class="status-badge pending" th:text="${page.paymentStatus}">PENDING</span>
+                    <span th:if="${page.paymentStatus == 'SUCCEEDED'}" class="status-badge succeeded" th:text="${page.paymentStatus}">SUCCEEDED</span>
+                </strong>
+            </div>
+        </section>
+
+        <div class="cta-row">
+            <form th:if="${page.paymentStatus == 'PENDING'}" method="post" th:action="@{/payments/mock/{paymentNo}/callback(paymentNo=${page.paymentNo})}">
+                <button type="submit" class="cta primary">Simulate Success Callback</button>
+            </form>
+            <a class="cta secondary" th:href="@{/order/{orderNo}/success(orderNo=${page.orderNo})}">Back to Order</a>
+        </div>
+    </section>
+</main>
+</body>
+</html>

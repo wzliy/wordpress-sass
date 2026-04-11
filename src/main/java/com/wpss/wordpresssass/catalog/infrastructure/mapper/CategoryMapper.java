@@ -38,6 +38,14 @@ public interface CategoryMapper {
     Optional<CategoryDO> selectByIdAndTenantId(@Param("id") Long id, @Param("tenantId") Long tenantId);
 
     @Select("""
+            SELECT id, tenant_id, name, slug, status, created_at, updated_at
+            FROM category
+            WHERE tenant_id = #{tenantId} AND slug = #{slug}
+            LIMIT 1
+            """)
+    Optional<CategoryDO> selectBySlugAndTenantId(@Param("tenantId") Long tenantId, @Param("slug") String slug);
+
+    @Select("""
             SELECT COUNT(1)
             FROM category
             WHERE tenant_id = #{tenantId} AND slug = #{slug}

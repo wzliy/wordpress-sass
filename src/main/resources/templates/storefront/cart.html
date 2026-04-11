@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${page.siteName} + ' Cart'">Cart</title>
+    <style>
+        :root {
+            color-scheme: light;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            background: radial-gradient(circle at top left, color-mix(in srgb, var(--theme-color) 15%, #f7f8fb) 0%, #f7f8fb 34%, #edf1f6 100%);
+            color: #172033;
+        }
+
+        .page {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 32px 20px 64px;
+        }
+
+        .hero,
+        .cart-shell,
+        .summary-card,
+        .cart-item {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(23, 32, 51, 0.08);
+            border-radius: 26px;
+            box-shadow: 0 22px 70px rgba(23, 32, 51, 0.08);
+        }
+
+        .hero {
+            padding: 28px;
+            margin-bottom: 22px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: color-mix(in srgb, var(--theme-color) 16%, white);
+            color: var(--theme-color);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 16px 0 10px;
+            font-size: clamp(2rem, 4vw, 3rem);
+            line-height: 1.04;
+        }
+
+        .subtitle {
+            margin: 0;
+            color: #5a667b;
+            line-height: 1.7;
+        }
+
+        .layout {
+            display: grid;
+            gap: 22px;
+            grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+            align-items: start;
+        }
+
+        .cart-shell {
+            padding: 20px;
+        }
+
+        .cart-list {
+            display: grid;
+            gap: 14px;
+        }
+
+        .cart-item {
+            display: grid;
+            gap: 16px;
+            grid-template-columns: 112px minmax(0, 1fr);
+            padding: 16px;
+        }
+
+        .thumb {
+            width: 112px;
+            height: 112px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, color-mix(in srgb, var(--theme-color) 24%, #f8fafc), #e2e8f0);
+            background-size: cover;
+            background-position: center;
+        }
+
+        .item-title {
+            margin: 0 0 8px;
+            font-size: 1.08rem;
+        }
+
+        .item-title a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .item-meta {
+            margin: 0 0 12px;
+            color: #637086;
+            font-size: 0.92rem;
+        }
+
+        .item-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .price {
+            font-weight: 800;
+            color: #101827;
+        }
+
+        .item-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .item-actions form {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        input[type="number"] {
+            width: 82px;
+            border: 1px solid rgba(23, 32, 51, 0.12);
+            border-radius: 14px;
+            padding: 10px 12px;
+            font-size: 0.95rem;
+        }
+
+        button,
+        .cta-link {
+            border: none;
+            border-radius: 14px;
+            padding: 11px 14px;
+            font-size: 0.92rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn-primary,
+        .cta-link.primary {
+            color: white;
+            background: var(--theme-color);
+        }
+
+        .btn-secondary,
+        .cta-link.secondary {
+            color: #425066;
+            background: #edf1f7;
+        }
+
+        .summary-card {
+            padding: 24px;
+        }
+
+        .summary-card h2 {
+            margin: 0 0 16px;
+            font-size: 1.1rem;
+        }
+
+        .summary-line {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 0;
+            color: #536177;
+        }
+
+        .summary-line.total {
+            border-top: 1px solid rgba(23, 32, 51, 0.08);
+            margin-top: 8px;
+            padding-top: 16px;
+            color: #101827;
+            font-weight: 800;
+        }
+
+        .empty-card {
+            padding: 42px 24px;
+            border-radius: 20px;
+            background: #f2f5fa;
+            text-align: center;
+            color: #5b677b;
+        }
+
+        .cta-stack {
+            display: grid;
+            gap: 10px;
+            margin-top: 22px;
+        }
+
+        @media (max-width: 900px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .cart-item {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body th:style="'--theme-color:' + ${page.themeColor}">
+<main class="page">
+    <section class="hero">
+        <span class="eyebrow" th:text="${page.siteCode}">site-code</span>
+        <h1>Cart</h1>
+        <p class="subtitle">Demo 购物车当前采用按站点分桶的 session-based 策略，便于多域名站点各自保持独立购物状态。</p>
+    </section>
+
+    <section class="layout">
+        <article class="cart-shell">
+            <div th:if="${#lists.isEmpty(page.items)}" class="empty-card">
+                <strong>Your cart is empty.</strong>
+                <p>Pick a product from the catalog and add it to start the checkout flow.</p>
+                <a class="cta-link secondary" href="/category/all">Browse Products</a>
+            </div>
+
+            <div th:if="${!#lists.isEmpty(page.items)}" class="cart-list">
+                <article th:each="item : ${page.items}" class="cart-item">
+                    <div class="thumb"
+                         th:style="${item.coverImage != null} ? 'background-image:url(' + item.coverImage + ')' : ''"></div>
+                    <div>
+                        <h2 class="item-title">
+                            <a th:href="@{/product/{id}(id=${item.productId})}" th:text="${item.title}">Product</a>
+                        </h2>
+                        <p class="item-meta" th:text="${item.sku}">SKU</p>
+                        <div class="item-row">
+                            <span class="price" th:text="'$' + ${item.lineTotal}">$0.00</span>
+                            <div class="item-actions">
+                                <form method="post" th:action="@{/cart/items/{productId}/quantity(productId=${item.productId})}">
+                                    <input type="number" name="quantity" min="0" th:value="${item.quantity}">
+                                    <button type="submit" class="btn-secondary">Update</button>
+                                </form>
+                                <form method="post" th:action="@{/cart/items/{productId}/remove(productId=${item.productId})}">
+                                    <button type="submit" class="btn-secondary">Remove</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </article>
+
+        <aside class="summary-card">
+            <h2>Summary</h2>
+            <div class="summary-line">
+                <span>Items</span>
+                <strong th:text="${page.totalQuantity}">0</strong>
+            </div>
+            <div class="summary-line total">
+                <span>Subtotal</span>
+                <strong th:text="'$' + ${page.subtotal}">$0.00</strong>
+            </div>
+            <div class="cta-stack">
+                <a class="cta-link primary" href="/checkout">Continue to Checkout</a>
+                <a class="cta-link secondary" href="/category/all">Keep Shopping</a>
+            </div>
+        </aside>
+    </section>
+</main>
+</body>
+</html>

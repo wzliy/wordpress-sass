@@ -6,12 +6,14 @@ import com.wpss.wordpresssass.auth.infrastructure.dataobject.UserAccountDO;
 import com.wpss.wordpresssass.auth.infrastructure.mapper.TenantMapper;
 import com.wpss.wordpresssass.auth.infrastructure.mapper.UserAccountMapper;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
 @Component
+@Order(10)
 public class AuthBootstrapService implements ApplicationRunner {
 
     private final TenantMapper tenantMapper;

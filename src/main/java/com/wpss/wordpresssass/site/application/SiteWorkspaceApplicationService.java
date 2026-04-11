@@ -2,6 +2,8 @@ package com.wpss.wordpresssass.site.application;
 
 import com.wpss.wordpresssass.common.exception.BusinessException;
 import com.wpss.wordpresssass.common.tenant.TenantContext;
+import com.wpss.wordpresssass.page.domain.Page;
+import com.wpss.wordpresssass.page.domain.PageRepository;
 import com.wpss.wordpresssass.site.application.dto.SiteWorkspaceDto;
 import com.wpss.wordpresssass.site.domain.ProvisionStatus;
 import com.wpss.wordpresssass.site.domain.Site;
@@ -24,15 +26,18 @@ public class SiteWorkspaceApplicationService {
     private final SiteTemplateRepository siteTemplateRepository;
     private final SiteSettingRepository siteSettingRepository;
     private final ThemeConfigRepository themeConfigRepository;
+    private final PageRepository pageRepository;
 
     public SiteWorkspaceApplicationService(SiteRepository siteRepository,
                                            SiteTemplateRepository siteTemplateRepository,
                                            SiteSettingRepository siteSettingRepository,
-                                           ThemeConfigRepository themeConfigRepository) {
+                                           ThemeConfigRepository themeConfigRepository,
+                                           PageRepository pageRepository) {
         this.siteRepository = siteRepository;
         this.siteTemplateRepository = siteTemplateRepository;
         this.siteSettingRepository = siteSettingRepository;
         this.themeConfigRepository = themeConfigRepository;
+        this.pageRepository = pageRepository;
     }
 
     public SiteWorkspaceDto getWorkspace(Long siteId) {
@@ -191,19 +196,25 @@ public class SiteWorkspaceApplicationService {
     private List<SiteWorkspaceDto.ModuleSummary> buildModuleSummaries(Site site) {
         boolean enabled = site.getStatus() == SiteStatus.ENABLED;
         boolean provisioning = site.getProvisionStatus() == ProvisionStatus.PROVISIONING;
+        List<Page> pages = pageRepository.findBySite(site.getTenantId(), site.getId());
+        boolean hasHomePage = pages.stream().anyMatch(page -> Page.HOME_PAGE_KEY.equals(page.getPageKey()));
+        long publishedPageCount = pages.stream().filter(page -> page.getPublishedVersionId() != null).count();
+        String editorPath = hasHomePage ? "/sites/" + site.getId() + "/pages/home/editor" : null;
 
         return List.of(
                 new SiteWorkspaceDto.ModuleSummary(
                         "PAGE",
-                        provisioning ? "CONFIGURING" : "ACTION_REQUIRED",
+                        provisioning ? "CONFIGURING" : hasHomePage ? "READY" : "ACTION_REQUIRED",
                         "页面概览",
-                        new SiteWorkspaceDto.Metric("页面状态", provisioning ? "初始化中" : "待接入", provisioning ? "warning" : "muted"),
+                        new SiteWorkspaceDto.Metric("页面状态", provisioning ? "初始化中" : hasHomePage ? "首页已接入" : "待接入", provisioning ? "warning" : hasHomePage ? "success" : "muted"),
                         List.of(
-                                new SiteWorkspaceDto.Metric("已发布页面", "0", "neutral"),
-                                new SiteWorkspaceDto.Metric("最近发布", "--", "neutral")
+                                new SiteWorkspaceDto.Metric("已发布页面", String.valueOf(publishedPageCount), publishedPageCount > 0 ? "success" : "neutral"),
+                                new SiteWorkspaceDto.Metric("编辑入口", hasHomePage ? "已开放" : "待开放", hasHomePage ? "success" : "neutral")
                         ),
-                        List.of("页面装修引擎尚未落地", "首版工作台先固定页面入口占位"),
-                        List.of(new SiteWorkspaceDto.Action("GO_LAYOUT_EDITOR", "页面装修", null, "INTERNAL", false))
+                        hasHomePage
+                                ? List.of("系统页面已初始化，可编辑首页、商品详情、结账页和成功页", "可直接进入首页编辑器继续保存草稿、回滚历史版本或发布")
+                                : List.of("页面装修引擎尚未接入当前站点", "需先补齐首页页面初始化"),
+                        List.of(new SiteWorkspaceDto.Action("GO_LAYOUT_EDITOR", "页面装修", editorPath, "INTERNAL", hasHomePage))
                 ),
                 new SiteWorkspaceDto.ModuleSummary(
                         "PAYMENT",
@@ -335,9 +346,11 @@ public class SiteWorkspaceApplicationService {
     }
 
     private List<SiteWorkspaceDto.Action> buildQuickActions(Site site) {
+        boolean hasHomePage = pageRepository.findBySiteAndPageKey(site.getTenantId(), site.getId(), Page.HOME_PAGE_KEY).isPresent();
         return List.of(
                 new SiteWorkspaceDto.Action("OPEN_SITE", "打开站点", site.getBaseUrl(), "EXTERNAL", site.getBaseUrl() != null && !site.getBaseUrl().isBlank()),
                 new SiteWorkspaceDto.Action("OPEN_ADMIN", "打开后台", site.getAdminUrl(), "EXTERNAL", site.getAdminUrl() != null && !site.getAdminUrl().isBlank()),
+                new SiteWorkspaceDto.Action("GO_LAYOUT_EDITOR", "首页装修", hasHomePage ? "/sites/" + site.getId() + "/pages/home/editor" : null, "INTERNAL", hasHomePage),
                 new SiteWorkspaceDto.Action("BACK_TO_LIST", "返回站点列表", "/sites/list", "INTERNAL", true),
                 new SiteWorkspaceDto.Action("GO_PROVISION", "继续建站", "/sites/provision", "INTERNAL", true)
         );
